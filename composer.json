@@ -13,6 +13,6 @@
 		"installer-name": "shop_stock"
 	},
 	"require": {
-		"burnbright/silverstripe-shop": "~1.0",
+		"burnbright/silverstripe-shop": "*"
 	}
 }
