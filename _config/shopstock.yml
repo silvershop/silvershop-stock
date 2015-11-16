@@ -1,0 +1,26 @@
+---
+name: shopstock
+---
+Product:
+  extensions:
+    - ProductStockExtension
+
+ProductVariation:
+  extensions:
+    - ProductStockExtension
+
+AddProductForm:
+  extensions:
+    - ProductStockAddProductExtension
+
+Order:
+  extensions:
+    - StockManagedOrder
+
+OrderItem:
+  extensions:
+    - StockManagedOrderItem
+
+ProductCatalogAdmin:
+  managed_models:
+    - ProductWarehouse
