@@ -7,26 +7,28 @@
  *
  * @package shop_stock
  */
-class ProductWarehouse extends DataObject {
+class ProductWarehouse extends DataObject
+{
 
-	private static $db = array(
-		'Title' => 'Varchar'
-	);
+    private static $db = array(
+        'Title' => 'Varchar'
+    );
 
-	private static $has_many = array(
-		'StockedProducts' => 'ProductWarehouseStock'
-	);
+    private static $has_many = array(
+        'StockedProducts' => 'ProductWarehouseStock'
+    );
 
-	/**
-	 * Ensure all the stock is removed when we remove the warehouse
-	 *
-	 * @return void
-	 */
-	public function onBeforeDelete() {
-		parent::onBeforeDelete();
+    /**
+     * Ensure all the stock is removed when we remove the warehouse
+     *
+     * @return void
+     */
+    public function onBeforeDelete()
+    {
+        parent::onBeforeDelete();
 
-		foreach($this->StockedProducts() as $stock) {
-			$stock->delete();
-		}
-	}
+        foreach ($this->StockedProducts() as $stock) {
+            $stock->delete();
+        }
+    }
 }
