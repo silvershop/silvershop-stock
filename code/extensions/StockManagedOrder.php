@@ -5,7 +5,6 @@
  *
  * @package shop_stock
  */
-class StockManagedOrder extends DataExtension {
-	
-
+class StockManagedOrder extends DataExtension
+{
 }
