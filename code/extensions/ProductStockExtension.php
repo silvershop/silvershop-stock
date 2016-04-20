@@ -103,7 +103,12 @@ class ProductStockExtension extends DataExtension
      */
     public function getStockForWarehouse($warehouse)
     {
-        $record = $warehouse->StockedProducts()->filter('ProductID', $this->owner->ID)->first();
+       $record = $warehouse->StockedProducts()->filter(array(
+           'ProductID'=> $this->owner->ID, 
+           'ProductClass'=>$this->owner->ClassName
+        ))->first();
+
+
 
         if (!$record) {
             $record = Injector::inst()->create('ProductWarehouseStock');
