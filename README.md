@@ -5,8 +5,8 @@ Adds stock management to the SilverStripe Shop module.
 [![Build Status](http://img.shields.io/travis/silvershop/silvershop-stock.svg?style=flat-square)](https://travis-ci.org/silvershop/silvershop-stock)
 [![Code Quality](http://img.shields.io/scrutinizer/g/silvershop/silvershop-stock.svg?style=flat-square)](https://scrutinizer-ci.com/g/silvershop/silvershop-stock)
 [![Code Coverage](http://img.shields.io/scrutinizer/coverage/g/silvershop/silvershop-stock.svg?style=flat-square)](https://scrutinizer-ci.com/g/silvershop/silvershop-stock)
-[![Version](http://img.shields.io/packagist/v/silvershop/silvershop-stock.svg?style=flat-square)](https://packagist.org/packages/silvershop/silvershop-stock)
-[![License](http://img.shields.io/packagist/l/silvershop/silvershop-stock.svg?style=flat-square)](LICENSE.md)
+[![Version](http://img.shields.io/packagist/v/silvershop/stock.svg?style=flat-square)](https://packagist.org/packages/silvershop/stock)
+[![License](http://img.shields.io/packagist/l/silvershop/stock.svg?style=flat-square)](LICENSE.md)
 
 
 ## Installation
