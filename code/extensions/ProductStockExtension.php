@@ -6,7 +6,7 @@
  *
  * Stock is held within a {@link ProductWarehouse}.
  *
- * @package shop_stock
+ * @package silvershop-stock
  */
 class ProductStockExtension extends DataExtension
 {

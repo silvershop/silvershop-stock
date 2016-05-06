@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @package shop_stock
+ * @package silvershop-stock
  */
 class ProductStockAddProductExtension extends Extension
 {

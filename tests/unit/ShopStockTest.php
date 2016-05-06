@@ -1,13 +1,13 @@
 <?php
 
 /**
- * @package shop_stock
+ * @package silvershop-stock
  * @subpackage tests
  */
 class ShopStockTest extends SapphireTest
 {
     
-    protected static $fixture_file = 'shop_stock/tests/fixtures.yml';
+    protected static $fixture_file = 'silvershop-stock/tests/fixtures.yml';
 
     private function setStockFor($item, $value)
     {

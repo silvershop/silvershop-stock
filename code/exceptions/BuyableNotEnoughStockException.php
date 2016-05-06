@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @package shop_stock
+ * @package silvershop-stock
  * @subpackage exceptions
  */
 class BuyableNotEnoughStockException extends ShopBuyableException

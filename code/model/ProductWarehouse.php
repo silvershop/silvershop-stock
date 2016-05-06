@@ -5,7 +5,7 @@
  * made, the stock value is decreased from the order of the warehouses in the
  * CMS.
  *
- * @package shop_stock
+ * @package silvershop-stock
  */
 class ProductWarehouse extends DataObject
 {
