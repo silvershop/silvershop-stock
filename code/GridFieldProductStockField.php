@@ -3,7 +3,7 @@
 /**
  * Handles inline editing / creation of the {@link ProductWarehouseStock}
  *
- * @package shop_stock
+ * @package silvershop-stock
  */
 class GridFieldProductStockFields implements GridField_SaveHandler
 {

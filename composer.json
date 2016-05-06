@@ -1,18 +1,18 @@
 {
-	"name": "dnadesign/silverstripe-shop_stock",
-	"description": "Adds stock management to the SilverStripe Shop module.",
+	"name": "silvershop/stock",
+	"description": "Adds stock management to SilverShop.",
 	"type": "silverstripe-module",
-	"keywords": ["silverstripe", "ecommerce"],
-	"license": "BSD-3-Clause",
+	"keywords": ["silverstripe", "silvershop", "ecommerce"],
+	"license": "BSD-2-Clause",
 	"authors": [{
 		"name": "Will Rossiter",
 		"email": "will@fullscreen.io",
 		"homepage": "http://github.com/wilr"
 	}],
 	"extra": {
-		"installer-name": "shop_stock"
+		"installer-name": "silvershop-stock"
 	},
 	"require": {
-		"burnbright/silverstripe-shop": "*"
+		"silvershop/core": "*"
 	}
 }

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * @package shop_stock
+ * @package silvershop-stock
  */
 class StockManagedOrderItem extends DataExtension
 {
-    
+
     public function onPlacement()
     {
         if ($this->owner->ProductVariationID) {
