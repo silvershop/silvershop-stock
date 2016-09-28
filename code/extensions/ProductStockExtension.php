@@ -35,7 +35,6 @@ class ProductStockExtension extends DataExtension
             GridFieldConfig::create()
                 ->addComponent(new GridFieldButtonRow('before'))
                 ->addComponent(new GridFieldToolbarHeader())
-                ->addComponent(new GridFieldTitleHeader())
                 ->addComponent(new GridFieldEditableColumns())
                 ->addComponent(new GridFieldProductStockFields())
         );
@@ -104,7 +103,7 @@ class ProductStockExtension extends DataExtension
     public function getStockForWarehouse($warehouse)
     {
        $record = $warehouse->StockedProducts()->filter(array(
-           'ProductID'=> $this->owner->ID, 
+           'ProductID'=> $this->owner->ID,
            'ProductClass'=>$this->owner->ClassName
         ))->first();
 
@@ -164,7 +163,7 @@ class ProductStockExtension extends DataExtension
         if ($current) {
             $extra = "AND \"ID\" != '$current->ID'";
         }
-        
+
         $pending = Order::get()->where("\"Status\" = 'Cart' $extra");
         $used = 0;
         $identifier = $this->getStockBaseIdentifier();
@@ -255,7 +254,7 @@ class ProductStockExtension extends DataExtension
     }
 
     /**
-     * @todo 
+     * @todo
      * @return string
      */
     public function getStockBaseIdentifier()
@@ -270,7 +269,7 @@ class ProductStockExtension extends DataExtension
      * stock, they're used a fallback.
      *
      * @param OrderItem $orderItem
-     * @return 
+     * @return
      */
     public function decrementStock(OrderItem $orderItem)
     {
@@ -288,7 +287,7 @@ class ProductStockExtension extends DataExtension
                 $quantity = $quantity - $warehouse->Quantity;
                 $warehouse->Quantity = 0;
             }
-            
+
             $warehouse->write();
         }
     }
