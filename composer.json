@@ -13,7 +13,7 @@
 		"installer-name": "silvershop-stock"
 	},
 	"require": {
-		"silvershop/core": "*",
+		"silvershop/core": ">=2.0.1",
         "silverstripe-australia/gridfieldextensions": "*"
 	}
 }
