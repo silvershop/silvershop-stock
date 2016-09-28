@@ -206,6 +206,11 @@ class ProductStockExtension extends DataExtension
      */
     public function canPurchase($member = null, $quantity = 1)
     {
+        if($this->getWarehouseStock()->count() < 1) {
+            // no warehouses available.
+            return;
+        }
+
         if ($this->hasVariations()) {
             // then just return. canPurchase will be called on those individual
             // variations, not the main product.
