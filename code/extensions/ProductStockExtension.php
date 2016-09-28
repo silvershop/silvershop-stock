@@ -61,7 +61,7 @@ class ProductStockExtension extends DataExtension
 
     /**
      * Returns a list of all the warehouses with a value in use for the stock
-     * GridField instance. Will create records for products that don't have 
+     * GridField instance. Will create records for products that don't have
      * them.
      *
      * @return DataList
@@ -73,21 +73,10 @@ class ProductStockExtension extends DataExtension
 
         $defaults = ProductWarehouseStock::config()->get('defaults');
 
-
         foreach ($warehouses as $warehouse) {
-            $base = $this->getStockBaseIdentifier();
-            $record = $this->getWarehouseStock()->first();
+            $stock = $this->getStockForWarehouse($warehouse);
 
-            if (!$record) {
-                $record = Injector::inst()->create('ProductWarehouseStock');
-                $record->WarehouseID = $warehouse->ID;
-                $record->ProductID = $this->owner->ID;
-                $record->ProductClass = $base;
-                $record->Quantity = $defaults['Quantity'];
-                $record->write();
-            }
-
-            $output->push($record);
+            $output->push($stock);
         }
 
         return $output;
@@ -106,8 +95,6 @@ class ProductStockExtension extends DataExtension
            'ProductID'=> $this->owner->ID,
            'ProductClass'=>$this->owner->ClassName
         ))->first();
-
-
 
         if (!$record) {
             $record = Injector::inst()->create('ProductWarehouseStock');
