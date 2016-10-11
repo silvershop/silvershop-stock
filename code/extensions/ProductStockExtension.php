@@ -208,26 +208,24 @@ class ProductStockExtension extends DataExtension
     {
         if($this->getWarehouseStock()->count() < 1) {
             // no warehouses available.
-            return;
+            return true;
         }
 
         if ($this->hasVariations()) {
             // then just return. canPurchase will be called on those individual
             // variations, not the main product.
-            return;
+            return true;
         } else {
             if (Config::inst()->get('ProductStockExtension', 'allow_out_of_stock_purchase')) {
-                return;
+                return true;
             }
 
             // validate to the amount they want to purchase.
             if (!$this->hasAvailableStock($quantity)) {
-                throw new BuyableNotEnoughStockException();
-
                 return false;
             }
 
-            return;
+            return true;
         }
     }
 
