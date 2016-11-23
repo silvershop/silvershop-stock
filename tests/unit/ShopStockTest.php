@@ -6,7 +6,7 @@
  */
 class ShopStockTest extends SapphireTest
 {
-    
+
     protected static $fixture_file = 'silvershop-stock/tests/fixtures.yml';
 
     private function setStockFor($item, $value)
@@ -59,7 +59,7 @@ class ShopStockTest extends SapphireTest
         ));
 
         $order->write();
-        
+
         $orderItem = new Product_OrderItem(array(
             'ProductID' => $this->phone->ID,
             'OrderID' => $order->ID,
@@ -97,7 +97,6 @@ class ShopStockTest extends SapphireTest
 
     public function testCanPurchaseNotEnough()
     {
-        $this->setExpectedException('BuyableNotEnoughStockException');
         $this->setStockFor($this->phone, 0);
         $this->assertFalse($this->phone->canPurchase(null, 1));
     }

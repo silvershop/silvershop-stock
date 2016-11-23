@@ -7,9 +7,9 @@
  */
 class StockManagedOrder extends DataExtension
 {
-    public function beforeAdd($buyable, $quantity, $filter)
+    public function afterAdd($item, $buyable, $quantity, $filter)
     {
-        if(!$buyable->canPurchase(null, $quantity)) {
+        if(!$buyable->canPurchase(null, $item->Quantity)) {
             throw new BuyableNotEnoughStockException();
         }
     }

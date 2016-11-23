@@ -3,7 +3,7 @@
 /**
  * @package silvershop-stock
  */
-class BuyableNotEnoughStockException extends ShopBuyableException
+class BuyableNotEnoughStockException extends Exception
 {
     public function __construct($message = null, $code = 0, Exception $previous = null) {
         if(!$message) {
