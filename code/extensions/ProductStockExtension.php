@@ -71,8 +71,6 @@ class ProductStockExtension extends DataExtension
         $warehouses = ProductWarehouse::get();
         $output = new ArrayList();
 
-        $defaults = ProductWarehouseStock::config()->get('defaults');
-
         foreach ($warehouses as $warehouse) {
             $stock = $this->getStockForWarehouse($warehouse);
 
@@ -95,6 +93,8 @@ class ProductStockExtension extends DataExtension
            'ProductID'=> $this->owner->ID,
            'ProductClass'=>$this->owner->ClassName
         ))->first();
+        
+        $defaults = ProductWarehouseStock::config()->get('defaults');
 
         if (!$record) {
             $record = Injector::inst()->create('ProductWarehouseStock');
@@ -102,6 +102,11 @@ class ProductStockExtension extends DataExtension
             $record->ProductID = $this->owner->ID;
             $record->ProductClass = $this->owner->ClassName;
             $record->Quantity = 0;
+            
+            foreach($defaults as $field => $val){
+                $record->{$field} = $val;
+            }
+            
             $record->write();
         }
 
