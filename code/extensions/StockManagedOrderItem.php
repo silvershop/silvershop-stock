@@ -14,7 +14,9 @@ class StockManagedOrderItem extends DataExtension
             }
         } elseif ($this->owner->ProductID) {
             if ($product = $this->owner->Product()) {
-                $product->decrementStock($this->owner);
+                if($product instanceof Product){
+                    $product->decrementStock($this->owner);
+                }
             }
         }
     }
