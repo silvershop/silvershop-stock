@@ -254,7 +254,7 @@ class ProductStockExtension extends DataExtension
      */
     public function getStockBaseIdentifier()
     {
-        return ($this->owner instanceof SiteTree) ? "Product" : "ProductVariation";
+        return ($this->owner instanceof SiteTree) ? $this->owner->ClassName : "ProductVariation";
     }
 
 
