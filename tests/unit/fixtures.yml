@@ -15,28 +15,28 @@ SilverShop\Model\Variation\AttributeType:
 SilverShop\Model\Variation\AttributeValue:
     size_small:
         Value: Small
-        Type: =>SilverShop\Model\Variation\AttributeType.size
+        Type: '=>SilverShop\Model\Variation\AttributeType.size'
     size_medium:
         Value: Medium
-        Type: =>SilverShop\Model\Variation\AttributeType.size
+        Type: '=>SilverShop\Model\Variation\AttributeType.size'
     size_large:
         Value: Large
-        Type: =>SilverShop\Model\Variation\AttributeType.size
+        Type: '=>SilverShop\Model\Variation\AttributeType.size'
     color_red:
         Value: Red
-        Type: =>SilverShop\Model\Variation\AttributeType.color
+        Type: '=>SilverShop\Model\Variation\AttributeType.color'
     color_blue:
         Value: Blue
-        Type: =>SilverShop\Model\Variation\AttributeType.color
+        Type: '=>SilverShop\Model\Variation\AttributeType.color'
     color_yellow:
         Value: Yellow
-        Type: =>SilverShop\Model\Variation\AttributeType.color
+        Type: '=>SilverShop\Model\Variation\AttributeType.color'
     capacity_60:
         Value: 60GB
-        Type: =>SilverShop\Model\Variation\AttributeType.capacity
+        Type: '=>SilverShop\Model\Variation\AttributeType.capacity'
     capacity_120:
         Value: 120GB
-        Type: =>SilverShop\Model\Variation\AttributeType.capacity
+        Type: '=>SilverShop\Model\Variation\AttributeType.capacity'
 
 SilverShop\Stock\Model\ProductWarehouse:
     warehouse:
@@ -44,23 +44,23 @@ SilverShop\Stock\Model\ProductWarehouse:
     second:
         Title: Second Warehouse
 
-SilverStripe\Model\Page\Product:
+SilverShop\Page\Product:
     phone:
         Title: Phone
     ball:
         Title: Beach Ball
         BasePrice: 22.00
-        VariationAttributeTypes: =>SilverShop\Model\Variation\AttributeType.size,=>SilverShop\Model\Variation\AttributeType.color
+        VariationAttributeTypes: '=>SilverShop\Model\Variation\AttributeType.size,=>SilverShop\Model\Variation\AttributeType.color'
     mp3player:
         Title: Mp3 Player
-        VariationAttributeTypes: =>SilverShop\Model\Variation\AttributeType.capacity,=>SilverShop\Model\Variation\AttributeType.color
+        VariationAttributeTypes: '=>SilverShop\Model\Variation\AttributeType.capacity,=>SilverShop\Model\Variation\AttributeType.color'
     cup:
         Title: cup
 SilverStripe\Model\Variation\Variation:
     redlarge:
-        Product: =>SilverStripe\Model\Page\Product.ball
-        AttributeValues: =>SilverShop\Model\Variation\AttributeValue.size_large,=>SilverShop\Model\Variation\AttributeValue.color_red
+        Product: '=>SilverShop\Page\Product.ball'
+        AttributeValues: '=>SilverShop\Model\Variation\AttributeValue.size_large,=>SilverShop\Model\Variation\AttributeValue.color_red'
     redsmall:
-        Product: =>SilverStripe\Model\Page\Product.ball
+        Product: '=>SilverShop\Page\Product.ball'
         Price: 20.00
-        AttributeValues: =>ProductAttributeValue.size_small,=>ProductAttributeValue.color_red
+        AttributeValues: '=>SilverShop\Model\Variation\AttributeValue.size_small,=>SilverShop\Model\Variation\AttributeValue.color_red'

@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverShop\Stock\Extension;
+namespace SilverShop\Stock\Extensions;
 
 use SilverStripe\ORM\DataExtension;
 use SilverShop\Stock\Exceptions\BuyableNotEnoughStockException;

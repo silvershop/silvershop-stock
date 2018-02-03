@@ -2,22 +2,26 @@
 
 namespace SilverShop\Stock\Extensions;
 
-use SilverStripe\ORM\Extension;
+use SilverStripe\ORM\DataExtension;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig;
 use SilverStripe\Forms\GridField\GridFieldButtonRow;
 use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
 use SilverStripe\ORM\ArrayList;
+use SilverStripe\Core\Config\Config;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverShop\Stock\Model\ProductWarehouseStock;
 use SilverShop\Stock\Model\ProductWarehouse;
+use SilverShop\Stock\Forms\GridFieldProductStockField;
 use SilverShop\Cart\ShoppingCart;
 use SilverShop\Model\Order;
+use SilverShop\Model\OrderItem;
 
 /**
  * An extension which can be applied to either the shop {@link Product} or
@@ -50,12 +54,12 @@ class ProductStockExtension extends DataExtension
                 ->addComponent(new GridFieldButtonRow('before'))
                 ->addComponent(new GridFieldToolbarHeader())
                 ->addComponent(new GridFieldEditableColumns())
-                ->addComponent(new GridFieldProductStockFields())
+                ->addComponent(new GridFieldProductStockField())
         );
 
         $grid->getConfig()->getComponentByType(GridFieldEditableColumns::class)->setDisplayFields(array(
             'Title' => array(
-                'field' => 'ReadonlyField'
+                'field' => ReadonlyField::class
             ),
             'Quantity'  => function ($record, $column, $grid) {
                 // Numeric doesn't support null type
@@ -205,7 +209,7 @@ class ProductStockExtension extends DataExtension
         return ProductWarehouseStock::get()->filter([
             'ProductID' => $this->owner->ID,
             'ProductClass' => $this->getStockBaseIdentifier()
-        []);
+        ]);
     }
 
     /**
@@ -235,7 +239,7 @@ class ProductStockExtension extends DataExtension
             // variations, not the main product.
             return true;
         } else {
-            $outOfStockAllowed = $this->config()->get('allow_out_of_stock_purchase');
+            $outOfStockAllowed = Config::inst()->get('allow_out_of_stock_purchase');
 
             if ($outOfStockAllowed) {
                 return true;
@@ -258,10 +262,10 @@ class ProductStockExtension extends DataExtension
      */
     private function hasVariations()
     {
-        return (
-            is_string($this->owner->has_many('Variations')) &&
-            $this->owner->Variations()->exists()
-        );
+        $schema = $this->owner->getSchema();
+        $componentClass = $schema->hasManyComponent($this->owner->ClassName, 'Variations');
+
+        return ($componentClass && $this->owner->Variations()->exists());
     }
 
     /**

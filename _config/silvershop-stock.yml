@@ -3,11 +3,11 @@ name: silvershop-stock
 ---
 SilverShop\Page\Product:
   extensions:
-    - SilverShop\Stock\Extension\ProductStockExtension
+    - SilverShop\Stock\Extensions\ProductStockExtension
 
 SilverShop\Model\Variation\Variation:
   extensions:
-    - SilverShop\Stock\Extension\ProductStockExtension
+    - SilverShop\Stock\Extensions\ProductStockExtension
 
 SilverShop\Forms\AddProductForm:
   extensions:
@@ -19,7 +19,7 @@ SilverShop\Model\Order:
 
 SilverShop\Model\OrderItem:
   extensions:
-    - SilverShop\Stock\Extensions\OrderItem
+    - SilverShop\Stock\Extensions\OrderItemExtension
 
 SilverShop\Admin\ProductCatalogAdmin:
   managed_models:

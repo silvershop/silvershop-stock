@@ -11,9 +11,8 @@ use SilverStripe\ORM\DataObjectInterface;
 /**
  * Handles inline editing / creation of the {@link ProductWarehouseStock}
  *
- * @package silvershop-stock
  */
-class GridFieldProductStockFields implements GridField_SaveHandler
+class GridFieldProductStockField implements GridField_SaveHandler
 {
 
     public function handleSave(GridField $grid, DataObjectInterface $record)
