@@ -1,5 +1,13 @@
 <?php
 
+namespace SilverShop\Stock\Forms;
+
+use SilverStripe\Forms\GridField\GridField_SaveHandler;
+use SilverStripe\Forms\GridField\GridField;
+use SilverShop\Stock\Model\ProductWarehouse;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\ORM\DataObjectInterface;
+
 /**
  * Handles inline editing / creation of the {@link ProductWarehouseStock}
  *

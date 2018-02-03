@@ -1,18 +1,32 @@
 <?php
 
+namespace SilverShop\Stock\Extensions;
+
+use SilverStripe\ORM\Extension;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\Forms\GridField\GridFieldButtonRow;
+use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
+use SilverStripe\ORM\ArrayList;
+use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverShop\Stock\Model\ProductWarehouseStock;
+use SilverShop\Stock\Model\ProductWarehouse;
+use SilverShop\Cart\ShoppingCart;
+use SilverShop\Model\Order;
+
 /**
  * An extension which can be applied to either the shop {@link Product} or
  * {@link ProductVariation} class for including stock values in the CMS.
  *
  * Stock is held within a {@link ProductWarehouse}.
- *
- * @package silvershop-stock
  */
 class ProductStockExtension extends DataExtension
 {
-
-    private static $db = array();
-
     private static $allow_out_of_stock_purchase = false;
 
     public function updateCMSFields(FieldList $fields)
@@ -39,7 +53,7 @@ class ProductStockExtension extends DataExtension
                 ->addComponent(new GridFieldProductStockFields())
         );
 
-        $grid->getConfig()->getComponentByType('GridFieldEditableColumns')->setDisplayFields(array(
+        $grid->getConfig()->getComponentByType(GridFieldEditableColumns::class)->setDisplayFields(array(
             'Title' => array(
                 'field' => 'ReadonlyField'
             ),
@@ -93,20 +107,20 @@ class ProductStockExtension extends DataExtension
            'ProductID'=> $this->owner->ID,
            'ProductClass'=>$this->owner->ClassName
         ))->first();
-        
+
         $defaults = ProductWarehouseStock::config()->get('defaults');
 
         if (!$record) {
-            $record = Injector::inst()->create('ProductWarehouseStock');
+            $record = Injector::inst()->create(ProductWarehouseStock::class);
             $record->WarehouseID = $warehouse->ID;
             $record->ProductID = $this->owner->ID;
             $record->ProductClass = $this->owner->ClassName;
             $record->Quantity = 0;
-            
+
             foreach($defaults as $field => $val){
                 $record->{$field} = $val;
             }
-            
+
             $record->write();
         }
 
@@ -188,10 +202,10 @@ class ProductStockExtension extends DataExtension
      */
     public function getWarehouseStock()
     {
-        return ProductWarehouseStock::get()->filter(array(
+        return ProductWarehouseStock::get()->filter([
             'ProductID' => $this->owner->ID,
             'ProductClass' => $this->getStockBaseIdentifier()
-        ));
+        []);
     }
 
     /**
@@ -221,7 +235,9 @@ class ProductStockExtension extends DataExtension
             // variations, not the main product.
             return true;
         } else {
-            if (Config::inst()->get('ProductStockExtension', 'allow_out_of_stock_purchase')) {
+            $outOfStockAllowed = $this->config()->get('allow_out_of_stock_purchase');
+
+            if ($outOfStockAllowed) {
                 return true;
             }
 
@@ -263,8 +279,7 @@ class ProductStockExtension extends DataExtension
      * stock across multiple warehouses. If any of the warehouses have unlimited
      * stock, they're used a fallback.
      *
-     * @param OrderItem $orderItem
-     * @return
+     * @param OrderItem $orderItem.
      */
     public function decrementStock(OrderItem $orderItem)
     {
@@ -285,5 +300,7 @@ class ProductStockExtension extends DataExtension
 
             $warehouse->write();
         }
+
+        return $this->owner;
     }
 }

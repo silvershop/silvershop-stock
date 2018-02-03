@@ -1,8 +1,9 @@
 <?php
 
-/**
- * @package silvershop-stock
- */
+namespace SilverShop\Stock\Exceptions;
+
+use Exception;
+
 class BuyableNotEnoughStockException extends Exception
 {
     public function __construct($message = null, $code = 0, Exception $previous = null) {

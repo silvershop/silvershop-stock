@@ -1,11 +1,15 @@
 <?php
 
+namespace SilverShop\Stock\Extension;
+
+use SilverStripe\ORM\DataExtension;
+use SilverShop\Stock\Exceptions\BuyableNotEnoughStockException;
+
 /**
- * Decrements the stock value on products after they have been purchased
- *
- * @package silvershop-stock
+ * Checks to confirm that the user can purchase the given quantity of the
+ * buyable.
  */
-class StockManagedOrder extends DataExtension
+class OrderExtension extends DataExtension
 {
     public function afterAdd($item, $buyable, $quantity, $filter)
     {

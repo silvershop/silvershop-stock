@@ -1,0 +1,9 @@
+mappings:
+  BuyableNotEnoughStockException: SilverShop\Stock\Exceptions\BuyableNotEnoughStockException
+  ProductStockAddProductExtension: SilverShop\Stock\Extensions\AddProductExtension
+  StockManagedOrder: SilverShop\Stock\Extensions\OrderExtension
+  StockManagedOrderItem: SilverShop\Stock\Extensions\OrderItemExtension
+  ProductStockExtension: SilverShop\Stock\Extensions\ProductStockExtension
+  GridFieldProductStockField: SilverShop\Stock\Forms\GridFieldProductStockField
+  ProductWarehouse: SilverShop\Stock\Model\ProductWarehouse
+  ProductWarehouseStock: SilverShop\Stock\Model\ProductWarehouseStock

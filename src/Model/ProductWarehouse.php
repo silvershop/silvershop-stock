@@ -1,25 +1,29 @@
 <?php
 
+namespace SilverShop\Stock\Model;
+
+use SilverStripe\ORM\DataObject;
+use SilverShop\Stock\Model\ProductWarehouseStock;
+
 /**
  * A product warehouse contains a quantity of a given stock. When an order is
  * made, the stock value is decreased from the order of the warehouses in the
  * CMS.
- *
- * @package silvershop-stock
  */
 class ProductWarehouse extends DataObject
 {
+    private static $db = [
+        'Title' => 'Varchar(255)'
+    ];
 
-    private static $db = array(
-        'Title' => 'Varchar'
-    );
+    private static $has_many = [
+        'StockedProducts' => ProductWarehouseStock::class
+    ];
 
-    private static $has_many = array(
-        'StockedProducts' => 'ProductWarehouseStock'
-    );
+    private static $table_name = 'ProductWarehouse';
 
     /**
-     * Ensure all the stock is removed when we remove the warehouse
+     * Ensure all the stock is removed when we remove the warehouse.
      *
      * @return void
      */

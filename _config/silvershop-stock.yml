@@ -1,0 +1,26 @@
+---
+name: silvershop-stock
+---
+SilverShop\Page\Product:
+  extensions:
+    - SilverShop\Stock\Extension\ProductStockExtension
+
+SilverShop\Model\Variation\Variation:
+  extensions:
+    - SilverShop\Stock\Extension\ProductStockExtension
+
+SilverShop\Forms\AddProductForm:
+  extensions:
+    - SilverShop\Stock\Extensions\AddProductExtension
+
+SilverShop\Model\Order:
+  extensions:
+    - SilverShop\Stock\Extensions\OrderExtension
+
+SilverShop\Model\OrderItem:
+  extensions:
+    - SilverShop\Stock\Extensions\OrderItem
+
+SilverShop\Admin\ProductCatalogAdmin:
+  managed_models:
+    - SilverShop\Stock\Model\ProductWarehouse

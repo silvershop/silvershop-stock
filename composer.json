@@ -1,19 +1,26 @@
 {
 	"name": "silvershop/stock",
 	"description": "Adds stock management to SilverShop.",
-	"type": "silverstripe-module",
+	"type": "silverstripe-vendormodule",
 	"keywords": ["silverstripe", "silvershop", "ecommerce"],
-	"license": "BSD-2-Clause",
-	"authors": [{
-		"name": "Will Rossiter",
-		"email": "will@fullscreen.io",
-		"homepage": "http://github.com/wilr"
-	}],
-	"extra": {
-		"installer-name": "silvershop-stock"
-	},
+	"license": "BSD-3-Clause",
+	"authors": [    {
+      "name": "SilverShop Contributors",
+      "homepage": "https://github.com/silvershop/silvershop-stock/graphs/contributors"
+    }],
 	"require": {
-		"silvershop/core": ">=2.0.1",
-        "silverstripe-australia/gridfieldextensions": "*"
-	}
+		"silvershop/core": "3.x-dev",
+        "symbiote/gridfieldextensions": "*"
+	},
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.x-dev"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "SilverShop\\Stock\\": "src/",
+            "SilverShop\\Stock\\Tests\\": "tests/unit/"
+        }
+    }
 }

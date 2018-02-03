@@ -1,16 +1,16 @@
 <?php
 
-/**
- * @package silvershop-stock
- */
-class ProductStockAddProductExtension extends Extension
-{
+namespace SilverShop\Stock\Extensions;
 
+use SilverStripe\Core\Extension;
+
+class AddProductExtension extends Extension
+{
     /**
      * If there is no stock across all products, then disable the add product
      * form.
      *
-     * @param mixed
+     * @param Buyable $product
      */
     public function updateAddProductForm($product)
     {

@@ -1,9 +1,14 @@
 <?php
 
+namespace SilverShop\Stock\Extension;
+
+use SilverStripe\ORM\DataExtension;
+
 /**
- * @package silvershop-stock
+ * Decrements the available stock when the order is placed.
+ *
  */
-class StockManagedOrderItem extends DataExtension
+class OrderItemExtension extends DataExtension
 {
     public function onPlacement()
     {
@@ -13,7 +18,7 @@ class StockManagedOrderItem extends DataExtension
                     $variation->decrementStock($this->owner);
                 }
             }
-        } elseif ($this->owner->ProductID) {
+        } else if ($this->owner->ProductID) {
             if ($product = $this->owner->Product()) {
                 if ($product->hasMethod('decrementStock')) {
                     $product->decrementStock($this->owner);

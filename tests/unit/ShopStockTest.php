@@ -1,17 +1,22 @@
 <?php
 
-/**
- * @package silvershop-stock
- * @subpackage tests
- */
+namespace SilverShop\Stock\Tests;
+
+use SilverStripe\Dev\SapphireTest;
+use SilverShop\Stock\Model\ProductWarehouseStock;
+use SilverShop\Model\Order;
+use SilverShop\Stock\Model\ProductWarehouse;
+use SilverShop\Model\Product\OrderItem;
+use SilverShop\Page\Product;
+use SilverShop\Model\Variation\Variation;
+
 class ShopStockTest extends SapphireTest
 {
-
-    protected static $fixture_file = 'silvershop-stock/tests/fixtures.yml';
+    protected static $fixture_file = 'fixtures.yml';
 
     private function setStockFor($item, $value)
     {
-        $warehouse = $this->objFromFixture('ProductWarehouse', 'warehouse');
+        $warehouse = $this->objFromFixture(ProductWarehouse::class, 'warehouse');
         $data = array(
             'WarehouseID' => $warehouse->ID,
             'ProductID' => $item->ID,
@@ -32,13 +37,13 @@ class ShopStockTest extends SapphireTest
     {
         parent::setUp();
 
-        $this->phone = $this->objFromFixture('Product', 'phone');
-        $this->ball = $this->objFromFixture('Product', 'ball');
-        $this->ballRedLarge = $this->objFromFixture('ProductVariation', 'redlarge');
-        $this->ballRedSmall = $this->objFromFixture('ProductVariation', 'redsmall');
+        $this->phone = $this->objFromFixture(Product::class, 'phone');
+        $this->ball = $this->objFromFixture(Product::class, 'ball');
+        $this->ballRedLarge = $this->objFromFixture(Variation::class, 'redlarge');
+        $this->ballRedSmall = $this->objFromFixture(Variation::class, 'redsmall');
 
-        $this->mp3 = $this->objFromFixture('Product', 'mp3player');
-        $this->cup = $this->objFromFixture('Product', 'cup');
+        $this->mp3 = $this->objFromFixture(Product::class, 'mp3player');
+        $this->cup = $this->objFromFixture(Product::class, 'cup');
     }
 
 
@@ -60,7 +65,7 @@ class ShopStockTest extends SapphireTest
 
         $order->write();
 
-        $orderItem = new Product_OrderItem(array(
+        $orderItem = new OrderItem(array(
             'ProductID' => $this->phone->ID,
             'OrderID' => $order->ID,
             'Quantity' => '5'
@@ -78,7 +83,6 @@ class ShopStockTest extends SapphireTest
 
         $this->assertEquals(5, $this->ballRedSmall->getTotalStockInCarts());
     }
-
 
     public function testHasAvailableStockProduct()
     {
