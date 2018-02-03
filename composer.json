@@ -10,7 +10,7 @@
     }],
 	"require": {
 		"silvershop/core": "3.x-dev",
-        "symbiote/gridfieldextensions": "*"
+        "symbiote/silverstripe-gridfieldextensions": "*"
 	},
     "extra": {
         "branch-alias": {
