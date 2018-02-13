@@ -21,11 +21,12 @@ use SilverShop\Stock\Model\ProductWarehouse;
 use SilverShop\Stock\Forms\GridFieldProductStockField;
 use SilverShop\Cart\ShoppingCart;
 use SilverShop\Model\Order;
+use SilverShop\Model\Variation\Variation;
 use SilverShop\Model\OrderItem;
 
 /**
  * An extension which can be applied to either the shop {@link Product} or
- * {@link ProductVariation} class for including stock values in the CMS.
+ * {@link Variation} class for including stock values in the CMS.
  *
  * Stock is held within a {@link ProductWarehouse}.
  */
@@ -48,7 +49,7 @@ class ProductStockExtension extends DataExtension
 
         $grid = new GridField(
             'StockLevels',
-            'Stock',
+            _t(__CLASS__ .'.Stock', 'Stock'),
             $this->getStockForEachWarehouse(),
             GridFieldConfig::create()
                 ->addComponent(new GridFieldButtonRow('before'))
@@ -177,6 +178,11 @@ class ProductStockExtension extends DataExtension
         $pending = Order::get()->where("\"Status\" = 'Cart' $extra");
         $used = 0;
         $identifier = $this->getStockBaseIdentifier();
+
+        if ($identifier !== "ProductVariation") {
+            $identifier = "Product";
+        }
+
         $key = "{$identifier}ID";
 
         foreach ($pending as $order) {
@@ -260,7 +266,7 @@ class ProductStockExtension extends DataExtension
      *
      * @return boolean
      */
-    private function hasVariations()
+    public function hasVariations()
     {
         $schema = $this->owner->getSchema();
         $componentClass = $schema->hasManyComponent($this->owner->ClassName, 'Variations');
@@ -269,12 +275,20 @@ class ProductStockExtension extends DataExtension
     }
 
     /**
-     * @todo
+     *
+     * @return bool
+     */
+    public function isVariation()
+    {
+        return ($this->owner instanceof Variation);
+    }
+
+    /**
      * @return string
      */
     public function getStockBaseIdentifier()
     {
-        return ($this->owner instanceof SiteTree) ? $this->owner->getClassName() : "ProductVariation";
+        return $this->owner->getClassName();
     }
 
 

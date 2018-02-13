@@ -8,7 +8,9 @@ use SilverShop\Model\Order;
 use SilverShop\Stock\Model\ProductWarehouse;
 use SilverShop\Model\Product\OrderItem;
 use SilverShop\Page\Product;
+use SilverStripe\Forms\FieldList;
 use SilverShop\Model\Variation\Variation;
+use SilverShop\Model\Variation\OrderItem as VariationOrderItem;
 
 class ShopStockTest extends SapphireTest
 {
@@ -77,8 +79,8 @@ class ShopStockTest extends SapphireTest
         // test variations
         $this->setStockFor($this->ballRedSmall, 5);
 
-        $orderItem = $orderItem->newClassInstance('ProductVariation_OrderItem');
-        $orderItem->ProductVariationID = $this->ballRedSmall->ID;
+        $orderItem = $orderItem->newClassInstance(VariationOrderItem::class);
+        $orderItem->VariationID = $this->ballRedSmall->ID;
         $orderItem->write();
 
         $this->assertEquals(5, $this->ballRedSmall->getTotalStockInCarts());
@@ -107,8 +109,6 @@ class ShopStockTest extends SapphireTest
 
     public function testGetCmsFields()
     {
-        $this->markTestIncomplete(
-          'This test has not been implemented yet.'
-        );
+        $this->assertInstanceOf(FieldList::class, $this->phone->getCMSFields());
     }
 }
