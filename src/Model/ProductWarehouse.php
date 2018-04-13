@@ -4,6 +4,9 @@ namespace SilverShop\Stock\Model;
 
 use SilverStripe\ORM\DataObject;
 use SilverShop\Stock\Model\ProductWarehouseStock;
+use SilverStripe\Forms\GridField\GridFieldAddNewButton;
+use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 
 /**
  * A product warehouse contains a quantity of a given stock. When an order is
@@ -34,5 +37,22 @@ class ProductWarehouse extends DataObject
         foreach ($this->StockedProducts() as $stock) {
             $stock->delete();
         }
+    }
+
+    public function getCMSFields()
+    {
+        $fields = parent::getCMSFields();
+
+        if ($stocked = $fields->dataFieldByName('StockedProducts')) {
+            $stocked->getConfig()->removeComponentsByType(
+                [
+                    GridFieldAddNewButton::class,
+                    GridFieldAddExistingAutocompleter::class,
+                    GridFieldDeleteAction::class
+                ]
+            );
+        }
+
+        return $fields;
     }
 }
