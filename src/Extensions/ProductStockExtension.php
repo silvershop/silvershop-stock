@@ -101,21 +101,25 @@ class ProductStockExtension extends DataExtension
 
 
     /**
-     * Returns the ProductWarehouseStock for this product goven a specific warehosue.
+     * Returns the ProductWarehouseStock for this product given a specific warehosue.
      * IT will create a ProductWarehouseStock record for the product in the warehouse if not found.
      *
-     * @return ProductWarehouseStock
+     * @param ProductWarehouse $warehouse The warehouse
+     * @param boolean $strictCreate Only create a ProductWarehouseStock record
+     * if this (Buyable) record exists in the DB
+     *
+     * @return ProductWarehouseStock|null
      */
-    public function getStockForWarehouse($warehouse)
+    public function getStockForWarehouse(ProductWarehouse $warehouse, $strictCreate = true)
     {
        $record = $warehouse->StockedProducts()->filter(array(
            'ProductID'=> $this->owner->ID,
            'ProductClass'=>$this->owner->ClassName
         ))->first();
 
-        $defaults = ProductWarehouseStock::config()->get('defaults');
+        if (!$record && ($this->owner->isInDB() || !$strictCreate)) {
 
-        if (!$record) {
+            $defaults = ProductWarehouseStock::config()->get('defaults');
             $record = Injector::inst()->create(ProductWarehouseStock::class);
             $record->WarehouseID = $warehouse->ID;
             $record->ProductID = $this->owner->ID;
