@@ -44,7 +44,7 @@ class ProductStockExtension extends DataExtension
                 'click the Stock tab on each of the variations</p>'
             ));
 
-            return $fields;
+            return;
         }
 
         $grid = new GridField(
@@ -91,9 +91,9 @@ class ProductStockExtension extends DataExtension
         $output = new ArrayList();
 
         foreach ($warehouses as $warehouse) {
-            $stock = $this->getStockForWarehouse($warehouse);
-
-            $output->push($stock);
+            if ($stock = $this->getStockForWarehouse($warehouse)) {
+                $output->push($stock);
+            }
         }
 
         return $output;
