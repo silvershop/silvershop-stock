@@ -16,7 +16,7 @@ class AddProductExtension extends Extension
     {
         $data = $this->owner->controller->data();
 
-        if (!$data->hasAvailableStock()) {
+        if (!$data->canPurchase()) {
             $this->owner->makeReadonly();
         }
     }
