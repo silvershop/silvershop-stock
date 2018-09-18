@@ -11,6 +11,13 @@ use SilverShop\Stock\Exceptions\BuyableNotEnoughStockException;
  */
 class OrderExtension extends DataExtension
 {
+    public function beforeAdd($buyable, $quantity, $filter)
+    {
+        if(!$buyable->canPurchase(null, $quantity)) {
+            throw new BuyableNotEnoughStockException();
+        }
+    }
+
     public function afterAdd($item, $buyable, $quantity, $filter)
     {
         if(!$buyable->canPurchase(null, $item->Quantity)) {
