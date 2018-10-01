@@ -23,7 +23,7 @@ class ProductWarehouse extends DataObject
         'StockedProducts' => ProductWarehouseStock::class
     ];
 
-    private static $table_name = 'ProductWarehouse';
+    private static $table_name = 'SilverShop_ProductWarehouse';
 
     /**
      * Ensure all the stock is removed when we remove the warehouse.
