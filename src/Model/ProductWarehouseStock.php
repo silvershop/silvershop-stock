@@ -18,7 +18,7 @@ class ProductWarehouseStock extends DataObject
         'Warehouse' => ProductWarehouse::class
     ];
 
-    private static $table_name = 'ProductWarehouseStock';
+    private static $table_name = 'SilverShop_ProductWarehouseStock';
 
     private static $summary_fields = [
         'Title'             => 'Warehouse',
