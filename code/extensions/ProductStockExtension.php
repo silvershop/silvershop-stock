@@ -132,8 +132,6 @@ class ProductStockExtension extends DataExtension
     public function hasAvailableStock($require = 1)
     {
         if ($this->hasVariations()) {
-            $stock = false;
-
             foreach ($this->owner->Variations() as $variation) {
                 if ($variation->hasAvailableStock($require)) {
                     return true;
@@ -143,12 +141,26 @@ class ProductStockExtension extends DataExtension
 
         if ($this->owner->UnlimitedStock) {
             return true;
-        }else {
-            $stock = $this->getWarehouseStockQuantity();
-            $pending = $this->getTotalStockInCarts();
-
-            return ($stock - $pending) >= $require;
         }
+
+        $stock = $this->getWarehouseStockQuantity();
+        $pending = $this->getReservedStock();
+
+        return ($stock - $pending) >= $require;
+
+    }
+
+    /**
+     * Returns the number of items that are currently on hold in the shopsystem.
+     *
+     * @return int
+     */
+    public function getReservedStock()
+    {
+        $reservedStock = $this->getTotalStockInCarts();
+        $this->owner->extend('updateReservedStock', $reservedStock);
+
+        return $reservedStock;
     }
 
     /**
@@ -234,18 +246,18 @@ class ProductStockExtension extends DataExtension
             // then just return. canPurchase will be called on those individual
             // variations, not the main product.
             return true;
-        }else {
-            if (Config::inst()->get('ProductStockExtension', 'allow_out_of_stock_purchase')) {
-                return true;
-            }
+        }
 
-            // validate to the amount they want to purchase.
-            if (!$this->hasAvailableStock($quantity)) {
-                return false;
-            }
-
+        if (Config::inst()->get('ProductStockExtension', 'allow_out_of_stock_purchase')) {
             return true;
         }
+
+        // validate to the amount they want to purchase.
+        if (!$this->hasAvailableStock($quantity)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
