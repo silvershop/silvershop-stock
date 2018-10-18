@@ -11,7 +11,13 @@
 class ProductStockExtension extends DataExtension
 {
 
-    private static $db = array();
+    private static $db = array(
+        'UnlimitedStock' => 'Boolean'
+    );
+
+    private static $defaults = array(
+        'UnlimitedStock' => 1
+    );
 
     private static $allow_out_of_stock_purchase = false;
 
@@ -21,7 +27,7 @@ class ProductStockExtension extends DataExtension
             // it has variations so then we leave the management of the stock
             // level to the variation.
             $fields->addFieldToTab('Root.Stock', new LiteralField('StockManagedVariations',
-                '<p>You have variations attached to this product. To manage the stock level '.
+                '<p>You have variations attached to this product. To manage the stock level ' .
                 'click the Stock tab on each of the variations</p>'
             ));
 
@@ -40,21 +46,25 @@ class ProductStockExtension extends DataExtension
         );
 
         $grid->getConfig()->getComponentByType('GridFieldEditableColumns')->setDisplayFields(array(
-            'Title' => array(
+            'Title'    => array(
                 'field' => 'ReadonlyField'
             ),
-            'Quantity'  => function ($record, $column, $grid) {
+            'Quantity' => function ($record, $column, $grid){
                 // Numeric doesn't support null type
                 // return new NumericField($column);
                 return new TextField($column);
             }
         ));
 
+        $unlimited = new CheckboxField('UnlimitedStock', 'Unlimited Stock', 'StockLevels');
+
         // if the record has a root tab, (page) otherwise it could be a
         // dataobject so we'll just
         if ($fields->fieldByName('Root')) {
+            $fields->addFieldToTab('Root.Stock', $unlimited);
             $fields->addFieldToTab('Root.Stock', $grid);
-        } else {
+        }else {
+            $fields->push($unlimited);
             $fields->push($grid);
         }
     }
@@ -89,11 +99,11 @@ class ProductStockExtension extends DataExtension
      */
     public function getStockForWarehouse($warehouse)
     {
-       $record = $warehouse->StockedProducts()->filter(array(
-           'ProductID'=> $this->owner->ID,
-           'ProductClass'=>$this->owner->ClassName
+        $record = $warehouse->StockedProducts()->filter(array(
+            'ProductID'    => $this->owner->ID,
+            'ProductClass' => $this->owner->ClassName
         ))->first();
-        
+
         $defaults = ProductWarehouseStock::config()->get('defaults');
 
         if (!$record) {
@@ -102,11 +112,11 @@ class ProductStockExtension extends DataExtension
             $record->ProductID = $this->owner->ID;
             $record->ProductClass = $this->owner->ClassName;
             $record->Quantity = 0;
-            
-            foreach($defaults as $field => $val){
+
+            foreach ($defaults as $field => $val) {
                 $record->{$field} = $val;
             }
-            
+
             $record->write();
         }
 
@@ -131,9 +141,9 @@ class ProductStockExtension extends DataExtension
             }
         }
 
-        if ($this->hasWarehouseWithUnlimitedStock()) {
+        if ($this->owner->UnlimitedStock) {
             return true;
-        } else {
+        }else {
             $stock = $this->getWarehouseStockQuantity();
             $pending = $this->getTotalStockInCarts();
 
@@ -189,7 +199,7 @@ class ProductStockExtension extends DataExtension
     public function getWarehouseStock()
     {
         return ProductWarehouseStock::get()->filter(array(
-            'ProductID' => $this->owner->ID,
+            'ProductID'    => $this->owner->ID,
             'ProductClass' => $this->getStockBaseIdentifier()
         ));
     }
@@ -211,7 +221,11 @@ class ProductStockExtension extends DataExtension
      */
     public function canPurchase($member = null, $quantity = 1)
     {
-        if($this->getWarehouseStock()->count() < 1) {
+        if ($this->owner->UnlimitedStock) {
+            return true;
+        }
+
+        if ($this->getWarehouseStock()->count() < 1) {
             // no warehouses available.
             return true;
         }
@@ -220,7 +234,7 @@ class ProductStockExtension extends DataExtension
             // then just return. canPurchase will be called on those individual
             // variations, not the main product.
             return true;
-        } else {
+        }else {
             if (Config::inst()->get('ProductStockExtension', 'allow_out_of_stock_purchase')) {
                 return true;
             }
@@ -268,6 +282,11 @@ class ProductStockExtension extends DataExtension
      */
     public function decrementStock(OrderItem $orderItem)
     {
+        if ($orderItem->Product()->UnlimitedStock) {
+            //Unlimited stock
+            return;
+        }
+
         $quantity = $orderItem->Quantity;
 
         foreach ($this->getWarehouseStock() as $warehouse) {
@@ -278,8 +297,8 @@ class ProductStockExtension extends DataExtension
 
             if ($quantity <= $warehouse->Quantity) {
                 $warehouse->Quantity -= $quantity;
-            } else {
-                $quantity = $quantity - $warehouse->Quantity;
+            }else {
+                $quantity -= $warehouse->Quantity;
                 $warehouse->Quantity = 0;
             }
 

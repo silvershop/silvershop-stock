@@ -7,7 +7,7 @@ class ProductWarehouseStock extends DataObject
 {
 
     private static $db = array(
-        'Quantity' => 'Varchar', // needs to support -1 for no limit
+        'Quantity' => 'Int', // needs to support -1 for no limit
         'ProductID' => 'Int',
         'ProductClass' => 'Varchar' // instance of Buyable
     );
@@ -18,7 +18,7 @@ class ProductWarehouseStock extends DataObject
      * @var array
      */
     private static $defaults = array(
-        'Quantity' => '-1'
+        'Quantity' => 0
     );
 
     private static $has_one = array(
