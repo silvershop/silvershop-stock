@@ -157,41 +157,30 @@ class ProductStockExtension extends DataExtension
      */
     public function getReservedStock()
     {
-        $reservedStock = $this->getTotalStockInCarts();
-        $this->owner->extend('updateReservedStock', $reservedStock);
-
-        return $reservedStock;
-    }
-
-    /**
-     * Returns the number of items that are currently in other people's carts
-     * which should be considered 'held'.
-     *
-     * @return int
-     */
-    public function getTotalStockInCarts()
-    {
         $current = ShoppingCart::curr();
-        $extra = "";
 
-        if ($current) {
-            $extra = "AND \"ID\" != '$current->ID'";
-        }
-
-        $pending = Order::get()->where("\"Status\" = 'Cart' $extra");
-        $used = 0;
         $identifier = $this->getStockBaseIdentifier();
-        $key = "{$identifier}ID";
 
-        foreach ($pending as $order) {
-            foreach ($order->Items() as $item) {
-                if ($item->$key == $this->owner->ID) {
-                    $used += $item->Quantity;
-                }
-            }
+        $orderItem = $identifier::config()->order_item;
+        $orderItemHasOne = $orderItem::config()->has_one;
+        $itemIdentifier = array_shift($orderItemHasOne);
+
+        if($identifier === 'GiftVoucherProduct'){
+            $itemIdentifier = "";
         }
 
-        return $used;
+        $statuses = array('Cart');
+
+        $this->owner->extend('updateOrderStatusArray',$statuses);
+
+        $pending = OrderItem::get()
+            ->leftJoin('Order',"\"Order\".\"ID\" = \"OrderAttribute\".\"OrderID\"")
+            ->leftJoin($orderItem,"\"{$orderItem}\".\"ID\" = \"OrderItem\".\"ID\"")
+            ->where("\"{$orderItem}\".\"{$itemIdentifier}ID\" = ". $this->owner->ID)
+            ->where('"Status" IN (\''.implode("','",$statuses).'\')')
+            ->filter('Order.ID:not',$current->ID);
+
+        return  $pending->sum('Quantity');
     }
 
     /**
