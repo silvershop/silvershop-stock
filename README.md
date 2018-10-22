@@ -31,8 +31,7 @@ particular warehouse.
 
 After installing the module your `Product` edit screen will gain a `Stock` tab
 which lists all your warehouses and the value count of the product (or
-variation). Leaving a warehouse stock value as `-1` implies that this warehouse
-has an unlimited quantity of this product.
+variation).
 
 When an product is added to the users cart, the quantity is on reserved as the
 current order is stored in the `Order` table.
@@ -46,5 +45,3 @@ sure you have the `CartCleanupTask` task enabled as a cron job*
 * Allow prioritizing of warehouses within each product (i.e use warehouse X for
 before warehouse Y) This should use a sortable grid field based on the
 `ProductWarehoueStock`.
-
-* Move 'unlimited stock' to a checkbox rather than -1.
