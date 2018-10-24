@@ -33,4 +33,5 @@ class ProductWarehouseStock extends DataObject
     {
         return ($warehouse = $this->Warehouse()) ? $warehouse->Title : null;
     }
+
 }

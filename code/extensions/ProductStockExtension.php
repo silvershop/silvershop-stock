@@ -16,10 +16,28 @@ class ProductStockExtension extends DataExtension
     );
 
     private static $defaults = array(
-        'UnlimitedStock' => 1
+        'UnlimitedStock' => 0
     );
 
     private static $allow_out_of_stock_purchase = false;
+
+    public function requireDefaultRecords(){
+        parent::requireDefaultRecords();
+
+        $oldStocks = ProductWarehouseStock::get()
+                    ->filter('Quantity','-1');
+
+        foreach ($oldStocks as $stock){
+            $className = $stock->ProductClass;
+
+            $product = $className::get()->byID($stock->ProductID);
+            $product->UnlimitedStock = 1;
+            $product->write();
+
+            $stock->Quantity = 0;
+            $stock->write();
+        }
+    }
 
     public function updateCMSFields(FieldList $fields)
     {
@@ -177,8 +195,11 @@ class ProductStockExtension extends DataExtension
             ->leftJoin('Order',"\"Order\".\"ID\" = \"OrderAttribute\".\"OrderID\"")
             ->leftJoin($orderItem,"\"{$orderItem}\".\"ID\" = \"OrderItem\".\"ID\"")
             ->where("\"{$orderItem}\".\"{$itemIdentifier}ID\" = ". $this->owner->ID)
-            ->where('"Status" IN (\''.implode("','",$statuses).'\')')
-            ->filter('Order.ID:not',$current->ID);
+            ->where('"Status" IN (\''.implode("','",$statuses).'\')');
+
+        if($current){
+            $pending->filter('Order.ID:not',$current->ID);
+        }
 
         return  $pending->sum('Quantity');
     }
