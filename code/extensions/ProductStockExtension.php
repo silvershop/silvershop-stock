@@ -180,12 +180,15 @@ class ProductStockExtension extends DataExtension
         $identifier = $this->getStockBaseIdentifier();
 
         $orderItem = $identifier::config()->order_item;
+
+        $tableList = DB::table_list();
+
+        if(!in_array($orderItem,$tableList)){
+            $orderItem = 'Product_OrderItem';
+        }
+
         $orderItemHasOne = $orderItem::config()->has_one;
         $itemIdentifier = array_shift($orderItemHasOne);
-
-        if($identifier === 'GiftVoucherProduct'){
-            $itemIdentifier = "";
-        }
 
         $statuses = array('Cart');
 
