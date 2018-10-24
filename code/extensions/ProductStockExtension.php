@@ -31,11 +31,13 @@ class ProductStockExtension extends DataExtension
             $className = $stock->ProductClass;
 
             $product = $className::get()->byID($stock->ProductID);
-            $product->UnlimitedStock = 1;
-            $product->write();
+            if($product){
+                $product->UnlimitedStock = 1;
+                $product->write();
 
-            $stock->Quantity = 0;
-            $stock->write();
+                $stock->Quantity = 0;
+                $stock->write();
+            }
         }
     }
 
