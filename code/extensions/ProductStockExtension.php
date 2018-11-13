@@ -167,6 +167,10 @@ class ProductStockExtension extends DataExtension
             return true;
         }
 
+        if ($this->owner->AllowOutOffStockPurchase) {
+            return true;
+        }
+
         $stock = $this->getWarehouseStockQuantity();
         $pending = $this->getReservedStock();
 
