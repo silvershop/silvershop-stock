@@ -12,7 +12,8 @@ class ProductStockExtension extends DataExtension
 {
 
     private static $db = array(
-        'UnlimitedStock' => 'Boolean'
+        'UnlimitedStock' => 'Boolean',
+        'AllowOutOffStockPurchase' => 'Boolean'
     );
 
     private static $defaults = array(
@@ -77,14 +78,17 @@ class ProductStockExtension extends DataExtension
         ));
 
         $unlimited = new CheckboxField('UnlimitedStock', 'Unlimited Stock', 'StockLevels');
+        $OutOffStock = new CheckboxField('AllowOutOffStockPurchase', 'Allow Out Off Stock Purchase');
 
         // if the record has a root tab, (page) otherwise it could be a
         // dataobject so we'll just
         if ($fields->fieldByName('Root')) {
             $fields->addFieldToTab('Root.Stock', $unlimited);
+            $fields->addFieldToTab('Root.Stock', $OutOffStock);
             $fields->addFieldToTab('Root.Stock', $grid);
         }else {
             $fields->push($unlimited);
+            $fields->push($OutOffStock);
             $fields->push($grid);
         }
     }
@@ -264,6 +268,10 @@ class ProductStockExtension extends DataExtension
         }
 
         if (Config::inst()->get('ProductStockExtension', 'allow_out_of_stock_purchase')) {
+            return true;
+        }
+
+        if($this->owner->AllowOutOffStockPurchase){
             return true;
         }
 
