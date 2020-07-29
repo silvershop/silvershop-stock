@@ -307,7 +307,6 @@ class ProductStockExtension extends DataExtension
             return 'Product';
         }
 
-        // return $this->owner->getClassName();
     }
 
 
