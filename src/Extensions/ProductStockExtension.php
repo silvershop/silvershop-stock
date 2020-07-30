@@ -300,13 +300,7 @@ class ProductStockExtension extends DataExtension
      */
     public function getStockBaseIdentifier()
     {
-
-        if($this->owner->isVariation()){
-            return 'ProductVariation';
-        } else {
-            return 'Product';
-        }
-
+        return $this->owner->getClassName();
     }
 
 
