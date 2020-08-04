@@ -183,7 +183,6 @@ class ProductStockExtension extends DataExtension
      */
     public function getTotalStockInCarts()
     {
-        return 0;
         $current = ShoppingCart::curr();
 
         $cartID = 0;
