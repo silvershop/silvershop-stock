@@ -143,34 +143,25 @@ class ProductStockExtension extends DataExtension
      *
      * @return boolean
      */
-    private static $cached_available_stock = [];
-
     public function hasAvailableStock($require = 1)
     {
-        if( isset(self::$cached_available_stock[$this->owner->ID]) ){
-           return self::$cached_available_stock[$this->owner->ID];
-        }
-
         if ($this->hasVariations()) {
             $stock = false;
 
             foreach ($this->owner->Variations() as $variation) {
                 if ($variation->hasAvailableStock($require)) {
-                    self::$cached_available_stock[$this->owner->ID] = true;
                     return true;
                 }
             }
         }
 
         if ($this->hasWarehouseWithUnlimitedStock()) {
-            self::$cached_available_stock[$this->owner->ID] = true;
             return true;
         } else {
             $stock = $this->getWarehouseStockQuantity();
             $pending = $this->getTotalStockInCarts();
 
             $result = ($stock - $pending) >= $require;
-            self::$cached_available_stock[$this->owner->ID] = $result;
             return $result;
         }
     }
