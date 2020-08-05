@@ -80,7 +80,7 @@ class ShopStockTest extends SapphireTest
         $this->setStockFor($this->ballRedSmall, 5);
 
         $orderItem = $orderItem->newClassInstance(VariationOrderItem::class);
-        $orderItem->VariationID = $this->ballRedSmall->ID;
+        $orderItem->ProductVariationID = $this->ballRedSmall->ID;
         $orderItem->write();
 
         $this->assertEquals(5, $this->ballRedSmall->getTotalStockInCarts());
