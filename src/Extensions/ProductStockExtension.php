@@ -14,6 +14,7 @@ use SilverStripe\Forms\GridField\GridFieldButtonRow;
 use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\DB;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverShop\Stock\Model\ProductWarehouseStock;
@@ -160,7 +161,8 @@ class ProductStockExtension extends DataExtension
             $stock = $this->getWarehouseStockQuantity();
             $pending = $this->getTotalStockInCarts();
 
-            return ($stock - $pending) >= $require;
+            $result = ($stock - $pending) >= $require;
+            return $result;
         }
     }
 
@@ -173,31 +175,38 @@ class ProductStockExtension extends DataExtension
     public function getTotalStockInCarts()
     {
         $current = ShoppingCart::curr();
-        $extra = "";
 
-        if ($current) {
-            $extra = "AND \"ID\" != '$current->ID'";
+        $cartID = 0;
+        if( $current ){
+            $cartID = $current->ID;
         }
 
-        $pending = Order::get()->where("\"Status\" = 'Cart' $extra");
-        $used = 0;
-        $identifier = $this->getStockBaseIdentifier();
-
-        if ($identifier !== "ProductVariation") {
+        if($this->owner->isVariation()){
+            $identifier = "Variation";
+            $identifier2 = "ProductVariation";
+        } else {
             $identifier = "Product";
+            $identifier2 = "Product";
         }
 
-        $key = "{$identifier}ID";
+        $query = 'SELECT SUM(SilverShop_OrderItem.Quantity) AS QuantitySum
+                        FROM SilverShop_OrderItem
+                        LEFT JOIN SilverShop_'.$identifier.'_OrderItem ON SilverShop_'.$identifier.'_OrderItem.ID = SilverShop_OrderItem.ID
+                        LEFT JOIN SilverShop_OrderAttribute ON SilverShop_OrderAttribute.ID=SilverShop_OrderItem.ID
+                        LEFT JOIN SilverShop_Order ON SilverShop_Order.ID=SilverShop_OrderAttribute.OrderID
+                        WHERE SilverShop_'.$identifier.'_OrderItem.'.$identifier2.'ID = ' . $this->owner->ID . '
+                        AND SilverShop_Order.ID != ' . $cartID . '
+                        AND SilverShop_Order.Status=\'Cart\'
+                        GROUP BY SilverShop_'.$identifier.'_OrderItem.'.$identifier2.'ID';
 
-        foreach ($pending as $order) {
-            foreach ($order->Items() as $item) {
-                if ($item->$key == $this->owner->ID) {
-                    $used += $item->Quantity;
-                }
-            }
+        $result = DB::query($query)->next();
+
+        if( $result ){
+            return $result['QuantitySum'];
         }
 
-        return $used;
+        return 0;
+
     }
 
     /**
@@ -218,7 +227,7 @@ class ProductStockExtension extends DataExtension
     {
         return ProductWarehouseStock::get()->filter([
             'ProductID' => $this->owner->ID,
-            'ProductClass' => $this->getStockBaseIdentifier()
+            'ProductClass' => $this->owner->getClassName()
         ]);
     }
 
@@ -239,6 +248,7 @@ class ProductStockExtension extends DataExtension
      */
     public function canPurchase($member = null, $quantity = 1)
     {
+
         if($this->getWarehouseStock()->count() < 1) {
             // no warehouses available.
             return true;
