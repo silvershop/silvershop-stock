@@ -35,7 +35,7 @@ class ShopStockTest extends SapphireTest
         $stock->write();
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
