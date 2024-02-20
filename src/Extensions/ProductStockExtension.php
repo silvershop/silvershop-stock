@@ -40,8 +40,9 @@ class ProductStockExtension extends DataExtension
         if ($this->hasVariations()) {
             // it has variations so then we leave the management of the stock
             // level to the variation.
-            $fields->addFieldToTab('Root.Stock', new LiteralField('StockManagedVariations',
-                '<p>You have variations attached to this product. To manage the stock level '.
+            $fields->addFieldToTab('Root.Stock', new LiteralField(
+                'StockManagedVariations',
+                '<p>You have variations attached to this product. To manage the stock level ' .
                 'click the Stock tab on each of the variations</p>'
             ));
 
@@ -50,7 +51,7 @@ class ProductStockExtension extends DataExtension
 
         $grid = new GridField(
             'StockLevels',
-            _t(__CLASS__ .'.Stock', 'Stock'),
+            _t(__CLASS__ . '.Stock', 'Stock'),
             $this->getStockForEachWarehouse(),
             GridFieldConfig::create()
                 ->addComponent(new GridFieldButtonRow('before'))
@@ -59,16 +60,16 @@ class ProductStockExtension extends DataExtension
                 ->addComponent(new GridFieldProductStockField())
         );
 
-        $grid->getConfig()->getComponentByType(GridFieldEditableColumns::class)->setDisplayFields(array(
-            'Title' => array(
+        $grid->getConfig()->getComponentByType(GridFieldEditableColumns::class)->setDisplayFields([
+            'Title' => [
                 'field' => ReadonlyField::class
-            ),
+            ],
             'Quantity'  => function ($record, $column, $grid) {
                 // Numeric doesn't support null type
                 // return new NumericField($column);
                 return new TextField($column);
             }
-        ));
+        ]);
 
         // if the record has a root tab, (page) otherwise it could be a
         // dataobject so we'll just
@@ -113,13 +114,12 @@ class ProductStockExtension extends DataExtension
      */
     public function getStockForWarehouse(ProductWarehouse $warehouse, $strictCreate = true)
     {
-       $record = $warehouse->StockedProducts()->filter(array(
+        $record = $warehouse->StockedProducts()->filter([
            'ProductID'=> $this->owner->ID,
            'ProductClass'=>$this->owner->ClassName
-        ))->first();
+        ])->first();
 
         if (!$record && ($this->owner->isInDB() || !$strictCreate)) {
-
             $defaults = ProductWarehouseStock::config()->get('defaults');
             $record = Injector::inst()->create(ProductWarehouseStock::class);
             $record->WarehouseID = $warehouse->ID;
@@ -127,7 +127,7 @@ class ProductStockExtension extends DataExtension
             $record->ProductClass = $this->owner->ClassName;
             $record->Quantity = 0;
 
-            foreach($defaults as $field => $val){
+            foreach ($defaults as $field => $val) {
                 $record->{$field} = $val;
             }
 
@@ -177,11 +177,11 @@ class ProductStockExtension extends DataExtension
         $current = ShoppingCart::curr();
 
         $cartID = 0;
-        if( $current ){
+        if ($current) {
             $cartID = $current->ID;
         }
 
-        if($this->owner->isVariation()){
+        if ($this->owner->isVariation()) {
             $identifier = "Variation";
             $identifier2 = "ProductVariation";
         } else {
@@ -191,22 +191,21 @@ class ProductStockExtension extends DataExtension
 
         $query = 'SELECT SUM(SilverShop_OrderItem.Quantity) AS QuantitySum
                         FROM SilverShop_OrderItem
-                        LEFT JOIN SilverShop_'.$identifier.'_OrderItem ON SilverShop_'.$identifier.'_OrderItem.ID = SilverShop_OrderItem.ID
+                        LEFT JOIN SilverShop_' . $identifier . '_OrderItem ON SilverShop_' . $identifier . '_OrderItem.ID = SilverShop_OrderItem.ID
                         LEFT JOIN SilverShop_OrderAttribute ON SilverShop_OrderAttribute.ID=SilverShop_OrderItem.ID
                         LEFT JOIN SilverShop_Order ON SilverShop_Order.ID=SilverShop_OrderAttribute.OrderID
-                        WHERE SilverShop_'.$identifier.'_OrderItem.'.$identifier2.'ID = ' . $this->owner->ID . '
+                        WHERE SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID = ' . $this->owner->ID . '
                         AND SilverShop_Order.ID != ' . $cartID . '
                         AND SilverShop_Order.Status=\'Cart\'
-                        GROUP BY SilverShop_'.$identifier.'_OrderItem.'.$identifier2.'ID';
+                        GROUP BY SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID';
 
         $result = DB::query($query)->next();
 
-        if( $result ){
+        if ($result) {
             return $result['QuantitySum'];
         }
 
         return 0;
-
     }
 
     /**
@@ -249,7 +248,7 @@ class ProductStockExtension extends DataExtension
     public function canPurchase($member = null, $quantity = 1)
     {
 
-        if($this->getWarehouseStock()->count() < 1) {
+        if ($this->getWarehouseStock()->count() < 1) {
             // no warehouses available.
             return true;
         }

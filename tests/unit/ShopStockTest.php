@@ -19,11 +19,11 @@ class ShopStockTest extends SapphireTest
     private function setStockFor($item, $value)
     {
         $warehouse = $this->objFromFixture(ProductWarehouse::class, 'warehouse');
-        $data = array(
+        $data = [
             'WarehouseID' => $warehouse->ID,
             'ProductID' => $item->ID,
             'ProductClass' => $item->getStockBaseIdentifier()
-        );
+        ];
 
         $stock = ProductWarehouseStock::get()->filter($data)->first();
 
@@ -61,17 +61,17 @@ class ShopStockTest extends SapphireTest
     {
         $this->setStockFor($this->phone, 10);
 
-        $order = new Order(array(
+        $order = new Order([
             'Status' => 'Cart'
-        ));
+        ]);
 
         $order->write();
 
-        $orderItem = new OrderItem(array(
+        $orderItem = new OrderItem([
             'ProductID' => $this->phone->ID,
             'OrderID' => $order->ID,
             'Quantity' => '5'
-        ));
+        ]);
 
         $orderItem->write();
         $this->assertEquals(5, $this->phone->getTotalStockInCarts());

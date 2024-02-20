@@ -67,7 +67,6 @@ class ProductWarehouseStock extends DataObject
     public function getBuyable()
     {
         if (is_null($this->_buyable)) {
-
             if (!$this->ProductClass || !$this->ProductID) {
                 $buyable = false;
             } else {
@@ -86,11 +85,12 @@ class ProductWarehouseStock extends DataObject
     /**
      * Get the title for the buyable (product)
      */
-    public function getBuyableTitle() {
+    public function getBuyableTitle()
+    {
 
         // This shouldn't happen... but if it does:
         if (!$this->getBuyable()) {
-            return _t(__CLASS__.'.NOTITLE', '<unknown>');
+            return _t(__CLASS__ . '.NOTITLE', '<unknown>');
         }
 
         if ($this->getBuyable()->isVariation()) {

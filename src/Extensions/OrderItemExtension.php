@@ -18,7 +18,7 @@ class OrderItemExtension extends DataExtension
                     $variation->decrementStock($this->owner);
                 }
             }
-        } else if ($this->owner->ProductID) {
+        } elseif ($this->owner->ProductID) {
             if ($product = $this->owner->Product()) {
                 if ($product->hasMethod('decrementStock')) {
                     $product->decrementStock($this->owner);
