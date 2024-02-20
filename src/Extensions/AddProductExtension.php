@@ -2,6 +2,7 @@
 
 namespace SilverShop\Stock\Extensions;
 
+use SilverShop\Model\Buyable;
 use SilverStripe\Core\Extension;
 
 class AddProductExtension extends Extension
@@ -12,7 +13,7 @@ class AddProductExtension extends Extension
      *
      * @param Buyable $product
      */
-    public function updateAddProductForm($product)
+    public function updateAddProductForm(?Buyable $product = null)
     {
         $data = $this->owner->controller->data();
 
