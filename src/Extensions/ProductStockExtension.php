@@ -189,23 +189,42 @@ class ProductStockExtension extends DataExtension
             $identifier2 = "Product";
         }
 
-        $query = 'SELECT SUM(SilverShop_OrderItem.Quantity) AS QuantitySum
-                        FROM SilverShop_OrderItem
-                        LEFT JOIN SilverShop_' . $identifier . '_OrderItem ON SilverShop_' . $identifier . '_OrderItem.ID = SilverShop_OrderItem.ID
-                        LEFT JOIN SilverShop_OrderAttribute ON SilverShop_OrderAttribute.ID=SilverShop_OrderItem.ID
-                        LEFT JOIN SilverShop_Order ON SilverShop_Order.ID=SilverShop_OrderAttribute.OrderID
-                        WHERE SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID = ' . $this->owner->ID . '
-                        AND SilverShop_Order.ID != ' . $cartID . '
-                        AND SilverShop_Order.Status=\'Cart\'
-                        GROUP BY SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID';
+        // Build the SQL query using SQLSelect
+        $query = SQLSelect::create()
+            ->setSelect([
+                'SUM(SilverShop_OrderItem.Quantity) AS QuantitySum'
+            ])
+            ->setFrom('SilverShop_OrderItem')
+            ->addLeftJoin(
+                'SilverShop_' . $identifier . '_OrderItem',
+                'SilverShop_' . $identifier . '_OrderItem.ID = SilverShop_OrderItem.ID'
+            )
+            ->addLeftJoin(
+                'SilverShop_OrderAttribute',
+                'SilverShop_OrderAttribute.ID = SilverShop_OrderItem.ID'
+            )
+            ->addLeftJoin(
+                'SilverShop_Order',
+                'SilverShop_Order.ID = SilverShop_OrderAttribute.OrderID'
+            )
+            ->addWhere([
+                'SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID' => $this->owner->ID,
+                'SilverShop_Order.ID != ?' => $cartID,
+                'SilverShop_Order.Status' => 'Cart'
+            ])
+            ->addGroupBy('SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID');
 
-        $result = DB::query($query)->next();
+        // Execute the query and fetch the result
+        $result = $query->execute()->record();
 
-        if ($result) {
-            return $result['QuantitySum'];
+        // Access the result
+        if ($result && isset($result['QuantitySum'])) {
+            $quantitySum = $result['QuantitySum'];
+        } else {
+            $quantitySum = 0;
         }
 
-        return 0;
+        return $quantitySum;
     }
 
     /**
