@@ -18,7 +18,6 @@ class GridFieldProductStockField implements GridField_SaveHandler
     public function handleSave(GridField $grid, DataObjectInterface $record)
     {
         $data = $grid->Value();
-        $base = ClassInfo::baseDataClass($record);
 
         if (isset($data['GridFieldEditableColumns'])) {
             // go through every warehouse and make sure the have either 0 stock
