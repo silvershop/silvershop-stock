@@ -13,6 +13,7 @@ use SilverStripe\Forms\GridField\GridFieldConfig;
 use SilverStripe\Forms\GridField\GridFieldButtonRow;
 use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
 use SilverStripe\ORM\ArrayList;
+use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DB;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
