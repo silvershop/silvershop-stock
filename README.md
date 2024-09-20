@@ -11,7 +11,7 @@ Adds stock management to the SilverStripe Shop module.
 
 ## Installation
 
-composer require "silvershop/stock:dev-master"
+composer require "silvershop/stock:dev-main"
 
 After installing the module, rebuild the database and create your first product
 warehouse in the `ProductCatalogAdmin` tab.
