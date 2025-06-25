@@ -25,6 +25,7 @@ use SilverShop\Cart\ShoppingCart;
 use SilverShop\Model\Order;
 use SilverShop\Model\Variation\Variation;
 use SilverShop\Model\OrderItem;
+use SilverStripe\Core\Config\Configurable;
 
 /**
  * An extension which can be applied to either the shop {@link Product} or
@@ -34,6 +35,8 @@ use SilverShop\Model\OrderItem;
  */
 class ProductStockExtension extends DataExtension
 {
+    use Configurable;
+    
     private static $allow_out_of_stock_purchase = false;
 
     public function updateCMSFields(FieldList $fields)
@@ -278,7 +281,7 @@ class ProductStockExtension extends DataExtension
             // variations, not the main product.
             return true;
         } else {
-            $outOfStockAllowed = Config::inst()->get('allow_out_of_stock_purchase');
+            $outOfStockAllowed = ProductStockExtension::config()->get('allow_out_of_stock_purchase');
 
             if ($outOfStockAllowed) {
                 return true;
