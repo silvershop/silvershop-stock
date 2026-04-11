@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Stock\Tests;
 
 use SilverStripe\Dev\SapphireTest;
@@ -11,12 +13,20 @@ use SilverShop\Page\Product;
 use SilverStripe\Forms\FieldList;
 use SilverShop\Model\Variation\Variation;
 use SilverShop\Model\Variation\OrderItem as VariationOrderItem;
+use Override;
 
 class ShopStockTest extends SapphireTest
 {
     protected static $fixture_file = 'fixtures.yml';
 
-    private function setStockFor($item, $value)
+    protected Product $phone;
+    protected Product $ball;
+    protected Variation $ballRedLarge;
+    protected Variation $ballRedSmall;
+    protected Product $mp3;
+    protected Product $cup;
+
+    private function setStockFor($item, $value): void
     {
         $warehouse = $this->objFromFixture(ProductWarehouse::class, 'warehouse');
         $data = [
@@ -28,14 +38,15 @@ class ShopStockTest extends SapphireTest
         $stock = ProductWarehouseStock::get()->filter($data)->first();
 
         if (!$stock) {
-            $stock = new ProductWarehouseStock($data);
+            $stock = ProductWarehouseStock::create($data);
         }
 
-        $stock->Quantity = $value;
+        $stock->Quantity = (string) $value;
         $stock->write();
     }
 
-    public function setUp(): void
+    #[Override]
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -48,8 +59,7 @@ class ShopStockTest extends SapphireTest
         $this->cup = $this->objFromFixture(Product::class, 'cup');
     }
 
-
-    public function testCanPurchaseVariation()
+    public function testCanPurchaseVariation(): void
     {
         $this->setStockFor($this->ballRedSmall, 1);
         $this->assertTrue($this->ball->canPurchase());
@@ -57,20 +67,20 @@ class ShopStockTest extends SapphireTest
         $this->assertTrue($this->ballRedSmall->canPurchase());
     }
 
-    public function testGetTotalStockInCarts()
+    public function testGetTotalStockInCarts(): void
     {
         $this->setStockFor($this->phone, 10);
 
-        $order = new Order([
+        $order = Order::create([
             'Status' => 'Cart'
         ]);
 
         $order->write();
 
-        $orderItem = new OrderItem([
+        $orderItem = OrderItem::create([
             'ProductID' => $this->phone->ID,
             'OrderID' => $order->ID,
-            'Quantity' => '5'
+            'Quantity' => 5
         ]);
 
         $orderItem->write();
@@ -79,6 +89,7 @@ class ShopStockTest extends SapphireTest
         // test variations
         $this->setStockFor($this->ballRedSmall, 5);
 
+        /** @var VariationOrderItem $orderItem */
         $orderItem = $orderItem->newClassInstance(VariationOrderItem::class);
         $orderItem->ProductVariationID = $this->ballRedSmall->ID;
         $orderItem->write();
@@ -86,7 +97,7 @@ class ShopStockTest extends SapphireTest
         $this->assertEquals(5, $this->ballRedSmall->getTotalStockInCarts());
     }
 
-    public function testHasAvailableStockProduct()
+    public function testHasAvailableStockProduct(): void
     {
         // no stock defined so no. Stock must be opt in
         $this->assertFalse($this->cup->hasAvailableStock());
@@ -101,13 +112,13 @@ class ShopStockTest extends SapphireTest
         $this->assertTrue($this->ball->hasAvailableStock());
     }
 
-    public function testCanPurchaseNotEnough()
+    public function testCanPurchaseNotEnough(): void
     {
         $this->setStockFor($this->phone, 0);
         $this->assertFalse($this->phone->canPurchase(null, 1));
     }
 
-    public function testGetCmsFields()
+    public function testGetCmsFields(): void
     {
         $this->assertInstanceOf(FieldList::class, $this->phone->getCMSFields());
     }

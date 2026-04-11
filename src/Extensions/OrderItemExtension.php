@@ -1,16 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Stock\Extensions;
 
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 
 /**
  * Decrements the available stock when the order is placed.
- *
  */
-class OrderItemExtension extends DataExtension
+class OrderItemExtension extends Extension
 {
-    public function onPlacement()
+    public function onPlacement(): void
     {
         if ($this->owner->ProductVariationID) {
             if ($variation = $this->owner->ProductVariation()) {

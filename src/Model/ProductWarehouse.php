@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Stock\Model;
 
+use Override;
 use SilverStripe\ORM\DataObject;
-use SilverShop\Stock\Model\ProductWarehouseStock;
 use SilverStripe\Forms\GridField\GridFieldAddNewButton;
 use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\FieldList;
 
 /**
  * A product warehouse contains a quantity of a given stock. When an order is
@@ -15,22 +18,18 @@ use SilverStripe\Forms\GridField\GridFieldDeleteAction;
  */
 class ProductWarehouse extends DataObject
 {
-    private static $db = [
+    private static string $table_name = 'SilverShop_ProductWarehouse';
+
+    private static array $db = [
         'Title' => 'Varchar(255)'
     ];
 
-    private static $has_many = [
+    private static array $has_many = [
         'StockedProducts' => ProductWarehouseStock::class
     ];
 
-    private static $table_name = 'SilverShop_ProductWarehouse';
-
-    /**
-     * Ensure all the stock is removed when we remove the warehouse.
-     *
-     * @return void
-     */
-    public function onBeforeDelete()
+    #[Override]
+    protected function onBeforeDelete(): void
     {
         parent::onBeforeDelete();
 
@@ -39,18 +38,17 @@ class ProductWarehouse extends DataObject
         }
     }
 
-    public function getCMSFields()
+    #[Override]
+    public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();
 
         if ($stocked = $fields->dataFieldByName('StockedProducts')) {
-            $stocked->getConfig()->removeComponentsByType(
-                [
-                    GridFieldAddNewButton::class,
-                    GridFieldAddExistingAutocompleter::class,
-                    GridFieldDeleteAction::class
-                ]
-            );
+            $stocked->getConfig()->removeComponentsByType([
+                GridFieldAddNewButton::class,
+                GridFieldAddExistingAutocompleter::class,
+                GridFieldDeleteAction::class
+            ]);
         }
 
         return $fields;

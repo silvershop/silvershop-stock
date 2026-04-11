@@ -1,21 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Stock\Forms;
 
 use SilverStripe\Forms\GridField\GridField_SaveHandler;
 use SilverStripe\Forms\GridField\GridField;
 use SilverShop\Stock\Model\ProductWarehouse;
-use SilverStripe\Core\ClassInfo;
 use SilverStripe\ORM\DataObjectInterface;
 
 /**
  * Handles inline editing / creation of the {@link ProductWarehouseStock}
- *
  */
 class GridFieldProductStockField implements GridField_SaveHandler
 {
-
-    public function handleSave(GridField $grid, DataObjectInterface $record)
+    public function handleSave(GridField $grid, DataObjectInterface $record): void
     {
         $data = $grid->Value();
 
@@ -25,18 +24,20 @@ class GridFieldProductStockField implements GridField_SaveHandler
             $warehouses = ProductWarehouse::get();
 
             foreach ($warehouses as $warehouse) {
-                $stock = $record->getStockForWarehouse($warehouse);
+                if (method_exists($record, 'getStockForWarehouse')) {
+                    $stock = $record->getStockForWarehouse($warehouse);
 
-                $quantity = null;
+                    $quantity = '0';
 
-                if (isset($data['GridFieldEditableColumns'][$stock->ID])) {
-                    if (isset($data['GridFieldEditableColumns'][$stock->ID]['Quantity'])) {
-                        $quantity = (int) $data['GridFieldEditableColumns'][$stock->ID]['Quantity'];
+                    if (isset($data['GridFieldEditableColumns'][$stock->ID])) {
+                        if (isset($data['GridFieldEditableColumns'][$stock->ID]['Quantity'])) {
+                            $quantity = (string) $data['GridFieldEditableColumns'][$stock->ID]['Quantity'];
+                        }
                     }
-                }
 
-                $stock->Quantity = $quantity;
-                $stock->write();
+                    $stock->Quantity = $quantity;
+                    $stock->write();
+                }
             }
         }
     }
