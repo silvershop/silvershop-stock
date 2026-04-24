@@ -1,26 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Stock\Model;
 
+use Override;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\Injector\Injector;
 use SilverShop\Stock\Model\ProductWarehouse;
+use SilverStripe\Forms\FieldList;
+use SilverShop\Model\Buyable;
 
 class ProductWarehouseStock extends DataObject
 {
-    private static $db = [
+    private static string $table_name = 'SilverShop_ProductWarehouseStock';
+
+    private static array $db = [
         'Quantity' => 'Varchar',
         'ProductID' => 'Int',
         'ProductClass' => 'Varchar(255)' // instance of Buyable
     ];
 
-    private static $has_one = [
+    private static array $has_one = [
         'Warehouse' => ProductWarehouse::class
     ];
 
-    private static $table_name = 'SilverShop_ProductWarehouseStock';
-
-    private static $summary_fields = [
+    private static array $summary_fields = [
         'Title'             => 'Warehouse',
         'BuyableTitle'      => 'Product',
         'VariationTitle'    => 'Variation',
@@ -28,38 +33,34 @@ class ProductWarehouseStock extends DataObject
     ];
 
     /**
-     * @var Buyable|null Cache the Buyable record
+     * @var Buyable|false|null Cache the Buyable record
      */
     protected $_buyable = null;
 
     /**
      * Set Quantity to -1 for default unlimited stock.
-     *
-     * @var array
      */
-    private static $defaults = [
+    private static array $defaults = [
         'Quantity' => '-1'
     ];
 
-    private static $indexes = [
+    private static array $indexes = [
         'LastEdited' => true,
     ];
 
-    public function getCMSFields()
+    #[Override]
+    public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();
         foreach ($fields->dataFields() as $field) {
-            if ($field->Name != 'Quantity') {
+            if ($field->Name !== 'Quantity') {
                 $fields->replaceField($field->Name, $field->performReadonlyTransformation());
             }
         }
         return $fields;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getTitle()
+    public function getTitle(): ?string
     {
         return ($warehouse = $this->Warehouse()) ? $warehouse->Title : null;
     }
@@ -85,28 +86,28 @@ class ProductWarehouseStock extends DataObject
     /**
      * Get the title for the buyable (product)
      */
-    public function getBuyableTitle()
+    public function getBuyableTitle(): string
     {
-
         // This shouldn't happen... but if it does:
         if (!$this->getBuyable()) {
             return _t(__CLASS__ . '.NOTITLE', '<unknown>');
         }
 
-        if ($this->getBuyable()->isVariation()) {
+        if (method_exists($this->getBuyable(), 'isVariation') && $this->getBuyable()->isVariation()) {
             return $this->getBuyable()->Product()->Title;
         }
 
-        return $this->getBuyable()->Title;
+        return $this->getBuyable()->Title ?? '';
     }
 
     /**
      * Get the title for the variation
      */
-    public function getVariationTitle()
+    public function getVariationTitle(): ?string
     {
-        if ($this->getBuyable() && $this->getBuyable()->isVariation()) {
-            return  $this->getBuyable()->Title;
+        if ($this->getBuyable() && method_exists($this->getBuyable(), 'isVariation') && $this->getBuyable()->isVariation()) {
+            return $this->getBuyable()->Title;
         }
+        return null;
     }
 }

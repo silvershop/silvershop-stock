@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Stock\Extensions;
 
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\LiteralField;
@@ -12,7 +14,7 @@ use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig;
 use SilverStripe\Forms\GridField\GridFieldButtonRow;
 use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
-use SilverStripe\ORM\ArrayList;
+use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DB;
@@ -33,13 +35,13 @@ use SilverStripe\Core\Config\Configurable;
  *
  * Stock is held within a {@link ProductWarehouse}.
  */
-class ProductStockExtension extends DataExtension
+class ProductStockExtension extends Extension
 {
     use Configurable;
     
-    private static $allow_out_of_stock_purchase = false;
+    private static bool $allow_out_of_stock_purchase = false;
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
         if ($this->hasVariations()) {
             // it has variations so then we leave the management of the stock
@@ -69,14 +71,10 @@ class ProductStockExtension extends DataExtension
                 'field' => ReadonlyField::class
             ],
             'Quantity'  => function ($record, $column, $grid) {
-                // Numeric doesn't support null type
-                // return new NumericField($column);
                 return new TextField($column);
             }
         ]);
 
-        // if the record has a root tab, (page) otherwise it could be a
-        // dataobject so we'll just
         if ($fields->fieldByName('Root')) {
             $fields->addFieldToTab('Root.Stock', $grid);
         } else {
@@ -84,14 +82,7 @@ class ProductStockExtension extends DataExtension
         }
     }
 
-    /**
-     * Returns a list of all the warehouses with a value in use for the stock
-     * GridField instance. Will create records for products that don't have
-     * them.
-     *
-     * @return DataList
-     */
-    public function getStockForEachWarehouse()
+    public function getStockForEachWarehouse(): ArrayList
     {
         $warehouses = ProductWarehouse::get();
         $output = new ArrayList();
@@ -105,19 +96,9 @@ class ProductStockExtension extends DataExtension
         return $output;
     }
 
-
-    /**
-     * Returns the ProductWarehouseStock for this product given a specific warehosue.
-     * IT will create a ProductWarehouseStock record for the product in the warehouse if not found.
-     *
-     * @param ProductWarehouse $warehouse The warehouse
-     * @param boolean $strictCreate Only create a ProductWarehouseStock record
-     * if this (Buyable) record exists in the DB
-     *
-     * @return ProductWarehouseStock|null
-     */
-    public function getStockForWarehouse(ProductWarehouse $warehouse, $strictCreate = true)
+    public function getStockForWarehouse(ProductWarehouse $warehouse, bool $strictCreate = true): ?ProductWarehouseStock
     {
+        /** @var ProductWarehouseStock|null $record */
         $record = $warehouse->StockedProducts()->filter([
            'ProductID'=> $this->owner->ID,
            'ProductClass'=>$this->owner->ClassName
@@ -129,7 +110,7 @@ class ProductStockExtension extends DataExtension
             $record->WarehouseID = $warehouse->ID;
             $record->ProductID = $this->owner->ID;
             $record->ProductClass = $this->owner->ClassName;
-            $record->Quantity = 0;
+            $record->Quantity = '0';
 
             foreach ($defaults as $field => $val) {
                 $record->{$field} = $val;
@@ -141,17 +122,9 @@ class ProductStockExtension extends DataExtension
         return $record;
     }
 
-
-    /**
-     * @param int
-     *
-     * @return boolean
-     */
-    public function hasAvailableStock($require = 1)
+    public function hasAvailableStock(int $require = 1): bool
     {
         if ($this->hasVariations()) {
-            $stock = false;
-
             foreach ($this->owner->Variations() as $variation) {
                 if ($variation->hasAvailableStock($require)) {
                     return true;
@@ -162,21 +135,14 @@ class ProductStockExtension extends DataExtension
         if ($this->hasWarehouseWithUnlimitedStock()) {
             return true;
         } else {
-            $stock = $this->getWarehouseStockQuantity();
-            $pending = $this->getTotalStockInCarts();
+            $stock = (int) $this->getWarehouseStockQuantity();
+            $pending = (int) $this->getTotalStockInCarts();
 
-            $result = ($stock - $pending) >= $require;
-            return $result;
+            return ($stock - $pending) >= $require;
         }
     }
 
-    /**
-     * Returns the number of items that are currently in other people's carts
-     * which should be considered 'held'.
-     *
-     * @return int
-     */
-    public function getTotalStockInCarts()
+    public function getTotalStockInCarts(): int
     {
         $current = ShoppingCart::curr();
 
@@ -185,7 +151,7 @@ class ProductStockExtension extends DataExtension
             $cartID = $current->ID;
         }
 
-        if ($this->owner->isVariation()) {
+        if ($this->owner instanceof Variation) {
             $identifier = "Variation";
             $identifier2 = "ProductVariation";
         } else {
@@ -218,33 +184,22 @@ class ProductStockExtension extends DataExtension
             ])
             ->addGroupBy('SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID');
 
-        // Execute the query and fetch the result
         $result = $query->execute()->record();
 
-        // Access the result
         if ($result && isset($result['QuantitySum'])) {
             $quantitySum = $result['QuantitySum'];
         } else {
             $quantitySum = 0;
         }
 
-        return $quantitySum;
+        return (int) $quantitySum;
     }
 
-    /**
-     * Returns whether a warehouse has unlimited stock for this product
-     *
-     * @return boolean
-     */
-    public function hasWarehouseWithUnlimitedStock()
+    public function hasWarehouseWithUnlimitedStock(): bool
     {
-        return ($this->getWarehouseStock()->where("\"Quantity\" = -1")->count() > 0);
+        return ($this->getWarehouseStock()->where("\"Quantity\" = '-1'")->count() > 0);
     }
 
-
-    /**
-     * @return DataList
-     */
     public function getWarehouseStock()
     {
         return ProductWarehouseStock::get()->filter([
@@ -253,41 +208,26 @@ class ProductStockExtension extends DataExtension
         ]);
     }
 
-    /**
-     * Returns the number of available stock. Note this cannot be used to
-     * determine if stock is available as a warehouse may have an unlimited
-     * (null) value for stock.
-     *
-     * @return boolean
-     */
-    public function getWarehouseStockQuantity()
+    public function getWarehouseStockQuantity(): int
     {
-        return $this->getWarehouseStock()->sum('Quantity');
+        return (int) $this->getWarehouseStock()->sum('Quantity');
     }
 
-    /**
-     * @return boolean
-     */
-    public function canPurchase($member = null, $quantity = 1)
+    public function canPurchase($member = null, int $quantity = 1): bool
     {
-
         if ($this->getWarehouseStock()->count() < 1) {
-            // no warehouses available.
             return true;
         }
 
         if ($this->hasVariations()) {
-            // then just return. canPurchase will be called on those individual
-            // variations, not the main product.
             return true;
         } else {
-            $outOfStockAllowed = ProductStockExtension::config()->get('allow_out_of_stock_purchase');
+            $outOfStockAllowed = self::config()->get('allow_out_of_stock_purchase');
 
             if ($outOfStockAllowed) {
                 return true;
             }
 
-            // validate to the amount they want to purchase.
             if (!$this->hasAvailableStock($quantity)) {
                 return false;
             }
@@ -296,13 +236,7 @@ class ProductStockExtension extends DataExtension
         }
     }
 
-    /**
-     * As stock can either be managed on a product or a product variation level,
-     * return whether this object has variations enabled.
-     *
-     * @return boolean
-     */
-    public function hasVariations()
+    public function hasVariations(): bool
     {
         $schema = $this->owner->getSchema();
         $componentClass = $schema->hasManyComponent($this->owner->ClassName, 'Variations');
@@ -310,46 +244,32 @@ class ProductStockExtension extends DataExtension
         return ($componentClass && $this->owner->Variations()->exists());
     }
 
-    /**
-     *
-     * @return bool
-     */
-    public function isVariation()
+    public function isVariation(): bool
     {
         return ($this->owner instanceof Variation);
     }
 
-    /**
-     * @return string
-     */
-    public function getStockBaseIdentifier()
+    public function getStockBaseIdentifier(): string
     {
         return $this->owner->getClassName();
     }
 
-
-    /**
-     * Decrements the stock for a given order item. Potentially will reduce the
-     * stock across multiple warehouses. If any of the warehouses have unlimited
-     * stock, they're used a fallback.
-     *
-     * @param OrderItem $orderItem.
-     */
     public function decrementStock(OrderItem $orderItem)
     {
-        $quantity = $orderItem->Quantity;
+        $quantity = (int) $orderItem->Quantity;
 
         foreach ($this->getWarehouseStock() as $warehouse) {
-            if ($warehouse->Quantity == "-1") {
-                // unlimited
+            if ($warehouse->Quantity == "-1" || $warehouse->Quantity == -1) {
                 break;
             }
 
-            if ($quantity <= $warehouse->Quantity) {
-                $warehouse->Quantity -= $quantity;
+            $currentQTY = (int) $warehouse->Quantity;
+
+            if ($quantity <= $currentQTY) {
+                $warehouse->Quantity = (string) ($currentQTY - $quantity);
             } else {
-                $quantity = $quantity - $warehouse->Quantity;
-                $warehouse->Quantity = 0;
+                $quantity = $quantity - $currentQTY;
+                $warehouse->Quantity = '0';
             }
 
             $warehouse->write();

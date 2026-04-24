@@ -9,17 +9,19 @@
       "homepage": "https://github.com/silvershop/silvershop-stock/graphs/contributors"
     }],
 	"require": {
-		"silvershop/core": "^4"
+		"php": "^8.4",
+		"silverstripe/framework": "^6.0",
+		"silvershop/core": "dev-cms6"
 	},
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "^11.0",
         "guzzle/plugin-mock": "^3.1",
-        "omnipay/dummy": "^2.1",
-        "omnipay/paymentexpress": "^2.1"
+        "omnipay/dummy": "^3.0",
+        "omnipay/paymentexpress": "^3.0"
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "3.x-dev"
+            "dev-main": "6.x-dev"
         }
     },
     "autoload": {

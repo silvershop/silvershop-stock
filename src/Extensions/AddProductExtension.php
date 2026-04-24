@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Stock\Extensions;
 
 use SilverShop\Model\Buyable;
@@ -11,13 +13,13 @@ class AddProductExtension extends Extension
      * If there is no stock across all products, then disable the add product
      * form.
      *
-     * @param Buyable $product
+     * @param Buyable|null $product
      */
-    public function updateAddProductForm(?Buyable $product = null)
+    public function updateAddProductForm(?Buyable $product = null): void
     {
-        $data = $this->owner->controller->data();
+        $data = $this->owner->getController()->data();
 
-        if (!$data->canPurchase()) {
+        if (method_exists($data, 'canPurchase') && !$data->canPurchase()) {
             $this->owner->makeReadonly();
         }
     }
