@@ -122,4 +122,108 @@ class ShopStockTest extends SapphireTest
     {
         $this->assertInstanceOf(FieldList::class, $this->phone->getCMSFields());
     }
+
+    public function testIncrementStockOnAdminCancellation(): void
+    {
+        $this->setStockFor($this->phone, 5);
+
+        $order = Order::create(['Status' => 'Paid']);
+        $order->write();
+
+        $orderItem = OrderItem::create([
+            'ProductID' => $this->phone->ID,
+            'OrderID' => $order->ID,
+            'Quantity' => 3,
+        ]);
+        $orderItem->write();
+
+        // Simulate stock decrement on placement
+        $this->phone->decrementStock($orderItem);
+        $this->assertEquals(2, $this->phone->getWarehouseStockQuantity());
+
+        // Cancel the order as admin
+        $order->Status = 'AdminCancelled';
+        $order->write();
+
+        // Stock should be restored
+        $this->assertEquals(5, $this->phone->getWarehouseStockQuantity());
+    }
+
+    public function testIncrementStockOnMemberCancellation(): void
+    {
+        $this->setStockFor($this->phone, 8);
+
+        $order = Order::create(['Status' => 'Unpaid']);
+        $order->write();
+
+        $orderItem = OrderItem::create([
+            'ProductID' => $this->phone->ID,
+            'OrderID' => $order->ID,
+            'Quantity' => 4,
+        ]);
+        $orderItem->write();
+
+        // Simulate stock decrement on placement
+        $this->phone->decrementStock($orderItem);
+        $this->assertEquals(4, $this->phone->getWarehouseStockQuantity());
+
+        // Cancel the order as member
+        $order->Status = 'MemberCancelled';
+        $order->write();
+
+        // Stock should be restored
+        $this->assertEquals(8, $this->phone->getWarehouseStockQuantity());
+    }
+
+    public function testIncrementStockOnVariationCancellation(): void
+    {
+        $this->setStockFor($this->ballRedSmall, 10);
+
+        $order = Order::create(['Status' => 'Paid']);
+        $order->write();
+
+        /** @var \SilverShop\Model\Variation\OrderItem $variationOrderItem */
+        $variationOrderItem = \SilverShop\Model\Variation\OrderItem::create([
+            'ProductID' => $this->ball->ID,
+            'ProductVariationID' => $this->ballRedSmall->ID,
+            'OrderID' => $order->ID,
+            'Quantity' => 3,
+        ]);
+        $variationOrderItem->write();
+
+        // Simulate stock decrement on placement
+        $this->ballRedSmall->decrementStock($variationOrderItem);
+        $this->assertEquals(7, $this->ballRedSmall->getWarehouseStockQuantity());
+
+        // Cancel the order as admin
+        $order->Status = 'AdminCancelled';
+        $order->write();
+
+        // Stock should be restored
+        $this->assertEquals(10, $this->ballRedSmall->getWarehouseStockQuantity());
+    }
+
+    public function testStockNotReleasedOnOtherStatusChanges(): void
+    {
+        $this->setStockFor($this->phone, 5);
+
+        $order = Order::create(['Status' => 'Unpaid']);
+        $order->write();
+
+        $orderItem = OrderItem::create([
+            'ProductID' => $this->phone->ID,
+            'OrderID' => $order->ID,
+            'Quantity' => 2,
+        ]);
+        $orderItem->write();
+
+        $this->phone->decrementStock($orderItem);
+        $this->assertEquals(3, $this->phone->getWarehouseStockQuantity());
+
+        // Transition to Paid - stock should not be released
+        $order->Status = 'Paid';
+        $order->write();
+
+        $this->assertEquals(3, $this->phone->getWarehouseStockQuantity());
+    }
 }
