@@ -277,4 +277,20 @@ class ProductStockExtension extends Extension
 
         return $this->owner;
     }
+
+    public function incrementStock(OrderItem $orderItem)
+    {
+        $quantity = (int) $orderItem->Quantity;
+
+        foreach ($this->getWarehouseStock() as $warehouse) {
+            if ($warehouse->Quantity == "-1" || $warehouse->Quantity == -1) {
+                break;
+            }
+
+            $warehouse->Quantity = (string) ((int) $warehouse->Quantity + $quantity);
+            $warehouse->write();
+        }
+
+        return $this->owner;
+    }
 }
