@@ -9,7 +9,7 @@
       "homepage": "https://github.com/silvershop/silvershop-stock/graphs/contributors"
     }],
 	"require": {
-		"php": "^8.4",
+		"php": "^8.3",
 		"silverstripe/framework": "^6.0",
 		"silvershop/core": "^6"
 	},
