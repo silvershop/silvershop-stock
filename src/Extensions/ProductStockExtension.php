@@ -284,7 +284,7 @@ class ProductStockExtension extends Extension
 
         foreach ($this->getWarehouseStock() as $warehouse) {
             if ($warehouse->Quantity == "-1" || $warehouse->Quantity == -1) {
-                break;
+                continue;
             }
 
             $warehouse->Quantity = (string) ((int) $warehouse->Quantity + $quantity);
