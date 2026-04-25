@@ -28,15 +28,13 @@ class ProductWarehouse extends DataObject
         'StockedProducts' => ProductWarehouseStock::class
     ];
 
-    #[Override]
-    protected function onBeforeDelete(): void
-    {
-        parent::onBeforeDelete();
+    private static array $cascade_deletes = [
+        'StockedProducts',
+    ];
 
-        foreach ($this->StockedProducts() as $stock) {
-            $stock->delete();
-        }
-    }
+    private static array $cascade_duplicates = [
+        'StockedProducts',
+    ];
 
     #[Override]
     public function getCMSFields(): FieldList
