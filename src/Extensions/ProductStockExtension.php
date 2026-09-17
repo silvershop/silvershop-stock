@@ -41,6 +41,13 @@ class ProductStockExtension extends Extension
     
     private static bool $allow_out_of_stock_purchase = false;
 
+    /**
+     * Only count carts edited within this many minutes as reserving stock (see getTotalStockInCarts()).
+     * 0 (default) = count every Cart order, i.e. no behaviour change. Set it so abandoned/bot carts do
+     * not reserve stock indefinitely.
+     */
+    private static int $pending_cart_max_age_mins = 0;
+
     public function updateCMSFields(FieldList $fields): void
     {
         if ($this->hasVariations()) {
@@ -159,6 +166,19 @@ class ProductStockExtension extends Extension
             $identifier2 = "Product";
         }
 
+        $where = [
+            'SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID' => $this->owner->ID,
+            'SilverShop_Order.ID != ?' => $cartID,
+            'SilverShop_Order.Status' => 'Cart'
+        ];
+
+        // Optionally ignore stale/abandoned carts so they don't reserve stock indefinitely
+        // (0 = count every Cart order, i.e. no behaviour change).
+        $maxAgeMins = (int) self::config()->get('pending_cart_max_age_mins');
+        if ($maxAgeMins > 0) {
+            $where['SilverShop_Order.LastEdited >= ?'] = date('Y-m-d H:i:s', strtotime("-{$maxAgeMins} minutes"));
+        }
+
         // Build the SQL query using SQLSelect
         $query = SQLSelect::create()
             ->setSelect([
@@ -177,11 +197,7 @@ class ProductStockExtension extends Extension
                 'SilverShop_Order',
                 'SilverShop_Order.ID = SilverShop_OrderAttribute.OrderID'
             )
-            ->addWhere([
-                'SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID' => $this->owner->ID,
-                'SilverShop_Order.ID != ?' => $cartID,
-                'SilverShop_Order.Status' => 'Cart'
-            ])
+            ->addWhere($where)
             ->addGroupBy('SilverShop_' . $identifier . '_OrderItem.' . $identifier2 . 'ID');
 
         $result = $query->execute()->record();
