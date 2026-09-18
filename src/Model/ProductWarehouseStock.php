@@ -46,6 +46,12 @@ class ProductWarehouseStock extends DataObject
 
     private static array $indexes = [
         'LastEdited' => true,
+        // The hot lookup {@see ProductStockExtension::getWarehouseStock()} filters by
+        // (ProductID, ProductClass); index it so stock checks don't table-scan on large catalogues.
+        'ProductStock' => [
+            'type' => 'index',
+            'columns' => ['ProductID', 'ProductClass'],
+        ],
     ];
 
     #[Override]
