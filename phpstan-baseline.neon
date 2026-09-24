@@ -1,0 +1,67 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Use SilverStripe\\Forms\\GridField\\GridField\:\:create\(\) instead of new SilverStripe\\Forms\\GridField\\GridField\(\)\.$#'
+			identifier: silverstan.injectable.useCreate
+			count: 1
+			path: src/Extensions/ProductStockExtension.php
+
+		-
+			message: '#^Use SilverStripe\\Forms\\GridField\\GridFieldButtonRow\:\:create\(\) instead of new SilverStripe\\Forms\\GridField\\GridFieldButtonRow\(\)\.$#'
+			identifier: silverstan.injectable.useCreate
+			count: 1
+			path: src/Extensions/ProductStockExtension.php
+
+		-
+			message: '#^Use SilverStripe\\Forms\\GridField\\GridFieldToolbarHeader\:\:create\(\) instead of new SilverStripe\\Forms\\GridField\\GridFieldToolbarHeader\(\)\.$#'
+			identifier: silverstan.injectable.useCreate
+			count: 1
+			path: src/Extensions/ProductStockExtension.php
+
+		-
+			message: '#^Use SilverStripe\\Forms\\LiteralField\:\:create\(\) instead of new SilverStripe\\Forms\\LiteralField\(\)\.$#'
+			identifier: silverstan.injectable.useCreate
+			count: 1
+			path: src/Extensions/ProductStockExtension.php
+
+		-
+			message: '#^Use SilverStripe\\Forms\\TextField\:\:create\(\) instead of new SilverStripe\\Forms\\TextField\(\)\.$#'
+			identifier: silverstan.injectable.useCreate
+			count: 1
+			path: src/Extensions/ProductStockExtension.php
+
+		-
+			message: '#^Use SilverStripe\\Model\\List\\ArrayList\:\:create\(\) instead of new SilverStripe\\Model\\List\\ArrayList\(\)\.$#'
+			identifier: silverstan.injectable.useCreate
+			count: 1
+			path: src/Extensions/ProductStockExtension.php
+
+		-
+			message: '#^Use Symbiote\\GridFieldExtensions\\GridFieldEditableColumns\:\:create\(\) instead of new Symbiote\\GridFieldExtensions\\GridFieldEditableColumns\(\)\.$#'
+			identifier: silverstan.injectable.useCreate
+			count: 1
+			path: src/Extensions/ProductStockExtension.php
+
+		-
+			message: '#^Call to an undefined method SilverStripe\\Forms\\FormField\:\:getConfig\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Model/ProductWarehouse.php
+
+		-
+			message: '#^Cannot access property \$Title on class\-string\|object\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: src/Model/ProductWarehouseStock.php
+
+		-
+			message: '#^Cannot call method Product\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Model/ProductWarehouseStock.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Model/ProductWarehouseStock.php
