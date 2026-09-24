@@ -19,6 +19,14 @@
         "omnipay/dummy": "^3.0",
         "omnipay/paymentexpress": "^3.0"
     },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "silverstripe/vendor-plugin": true,
+            "silverstripe/recipe-plugin": true,
+            "php-http/discovery": true
+        }
+    },
     "extra": {
         "branch-alias": {
             "dev-main": "6.x-dev"

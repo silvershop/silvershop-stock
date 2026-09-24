@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SilverShop\Stock\Tests;
 
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverShop\Stock\Model\ProductWarehouseStock;
 use SilverShop\Model\Order;
@@ -49,6 +50,10 @@ class ShopStockTest extends SapphireTest
     protected function setUp(): void
     {
         parent::setUp();
+
+        // These are stock tests; don't send a receipt email on the Paid transition
+        // (the fixture orders have no customer, which would fail RFC email validation).
+        Config::modify()->set(Order::class, 'send_receipt', false);
 
         $this->phone = $this->objFromFixture(Product::class, 'phone');
         $this->ball = $this->objFromFixture(Product::class, 'ball');
@@ -132,6 +137,7 @@ class ShopStockTest extends SapphireTest
 
         $orderItem = OrderItem::create([
             'ProductID' => $this->phone->ID,
+            'ProductVersion' => $this->phone->Version,
             'OrderID' => $order->ID,
             'Quantity' => 3,
         ]);
@@ -158,6 +164,7 @@ class ShopStockTest extends SapphireTest
 
         $orderItem = OrderItem::create([
             'ProductID' => $this->phone->ID,
+            'ProductVersion' => $this->phone->Version,
             'OrderID' => $order->ID,
             'Quantity' => 4,
         ]);
