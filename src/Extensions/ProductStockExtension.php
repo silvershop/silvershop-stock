@@ -6,8 +6,10 @@ namespace SilverShop\Stock\Extensions;
 
 use SilverStripe\Core\Extension;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\NumericField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Forms\GridField\GridField;
@@ -55,8 +57,12 @@ class ProductStockExtension extends Extension
             // level to the variation.
             $fields->addFieldToTab('Root.Stock', new LiteralField(
                 'StockManagedVariations',
-                '<p>You have variations attached to this product. To manage the stock level ' .
-                'click the Stock tab on each of the variations</p>'
+                '<p class="message notice" style="display:flex;align-items:flex-start;gap:.5em">'
+                . '<span class="font-icon-info-circled" aria-hidden="true"></span><span>' . _t(
+                    __CLASS__ . '.StockManagedVariations',
+                    'This product has variations. Set each variation\'s stock inline in the "Stock" column on the '
+                    . '"Variations" tab, or open a variation to edit it there.'
+                ) . '</span></p>'
             ));
 
             return;
@@ -89,6 +95,117 @@ class ProductStockExtension extends Extension
         }
     }
 
+    /**
+     * Contribute an inline-editable "Stock" column to the product's Variations grid
+     * (core fires this via extend() when building that grid). Only added when at least
+     * one warehouse exists; assumes a single warehouse — true for virtually every shop —
+     * and edits that warehouse's level. Keyed to Variation::getStockLevel()/setStockLevel().
+     */
+    public function updateVariationEditableColumns(array &$displayFields): void
+    {
+        if (!ProductWarehouse::get()->exists()) {
+            return;
+        }
+
+        $displayFields['StockLevel'] = [
+            'title' => _t(__CLASS__ . '.StockColumn', 'Stock'),
+            'callback' => fn ($record, $column, $grid): NumericField =>
+                NumericField::create($column)->setHTML5(true)->setScale(0)
+                    ->setAttribute('style', 'width:6em'),
+        ];
+
+        // Opt-in: an explicit "Unlimited" checkbox instead of the -1 sentinel.
+        if (ProductWarehouseStock::config()->get('use_unlimited_checkbox')) {
+            $displayFields['StockUnlimited'] = [
+                'title' => _t(__CLASS__ . '.UnlimitedColumn', 'Unlimited'),
+                'callback' => fn ($record, $column, $grid): CheckboxField =>
+                    CheckboxField::create($column),
+            ];
+        }
+    }
+
+    /**
+     * Single-warehouse stock quantity for this buyable, for the inline grid column.
+     * Null when no stock record exists yet; "-1" means unlimited.
+     */
+    public function getStockLevel(): ?string
+    {
+        $warehouse = ProductWarehouse::get()->first();
+        if (!$warehouse) {
+            return null;
+        }
+
+        $record = ProductWarehouseStock::get()->filter([
+            'ProductID' => $this->owner->ID,
+            'ProductClass' => $this->owner->ClassName,
+            'WarehouseID' => $warehouse->ID,
+        ])->first();
+
+        return $record ? (string) $record->Quantity : null;
+    }
+
+    /**
+     * Persist the single-warehouse stock quantity edited inline in the grid.
+     */
+    public function setStockLevel($value): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        $warehouse = ProductWarehouse::get()->first();
+        if (!$warehouse) {
+            return;
+        }
+
+        if ($record = $this->getStockForWarehouse($warehouse)) {
+            $record->Quantity = (string) (int) $value;
+            $record->write();
+        }
+    }
+
+    /**
+     * Single-warehouse "Unlimited" flag for the inline grid column (only shown when
+     * ProductWarehouseStock.use_unlimited_checkbox is enabled).
+     */
+    public function getStockUnlimited(): bool
+    {
+        $warehouse = ProductWarehouse::get()->first();
+        if (!$warehouse) {
+            return false;
+        }
+
+        $record = ProductWarehouseStock::get()->filter([
+            'ProductID' => $this->owner->ID,
+            'ProductClass' => $this->owner->ClassName,
+            'WarehouseID' => $warehouse->ID,
+        ])->first();
+
+        return $record ? (bool) $record->Unlimited : false;
+    }
+
+    public function setStockUnlimited($value): void
+    {
+        $warehouse = ProductWarehouse::get()->first();
+        if (!$warehouse) {
+            return;
+        }
+
+        if ($record = $this->getStockForWarehouse($warehouse)) {
+            $record->Unlimited = (bool) $value;
+            $record->write();
+        }
+    }
+
+    private function warehouseStockIsUnlimited(ProductWarehouseStock $stock): bool
+    {
+        if (ProductWarehouseStock::config()->get('use_unlimited_checkbox')) {
+            return (bool) $stock->Unlimited;
+        }
+
+        return ($stock->Quantity == '-1' || $stock->Quantity == -1);
+    }
+
     public function getStockForEachWarehouse(): ArrayList
     {
         $warehouses = ProductWarehouse::get();
@@ -119,8 +236,14 @@ class ProductStockExtension extends Extension
             $record->ProductClass = $this->owner->ClassName;
             $record->Quantity = '0';
 
-            foreach ($defaults as $field => $val) {
-                $record->{$field} = $val;
+            if (ProductWarehouseStock::config()->get('use_unlimited_checkbox')) {
+                // Unlimited by default via the explicit flag; Quantity stays a real number.
+                $record->Unlimited = true;
+            } else {
+                // Legacy: the -1 sentinel from $defaults marks unlimited.
+                foreach ($defaults as $field => $val) {
+                    $record->{$field} = $val;
+                }
             }
 
             $record->write();
@@ -213,6 +336,10 @@ class ProductStockExtension extends Extension
 
     public function hasWarehouseWithUnlimitedStock(): bool
     {
+        if (ProductWarehouseStock::config()->get('use_unlimited_checkbox')) {
+            return ($this->getWarehouseStock()->filter('Unlimited', true)->count() > 0);
+        }
+
         return ($this->getWarehouseStock()->where("\"Quantity\" = '-1'")->count() > 0);
     }
 
@@ -275,7 +402,7 @@ class ProductStockExtension extends Extension
         $quantity = (int) $orderItem->Quantity;
 
         foreach ($this->getWarehouseStock() as $warehouse) {
-            if ($warehouse->Quantity == "-1" || $warehouse->Quantity == -1) {
+            if ($this->warehouseStockIsUnlimited($warehouse)) {
                 break;
             }
 
@@ -299,7 +426,7 @@ class ProductStockExtension extends Extension
         $quantity = (int) $orderItem->Quantity;
 
         foreach ($this->getWarehouseStock() as $warehouse) {
-            if ($warehouse->Quantity == "-1" || $warehouse->Quantity == -1) {
+            if ($this->warehouseStockIsUnlimited($warehouse)) {
                 continue;
             }
 
