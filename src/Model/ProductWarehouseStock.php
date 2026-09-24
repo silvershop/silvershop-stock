@@ -15,10 +15,25 @@ class ProductWarehouseStock extends DataObject
 {
     private static string $table_name = 'SilverShop_ProductWarehouseStock';
 
+    /**
+     * Opt-in. When true, an explicit "Unlimited" boolean marks unlimited stock instead of the
+     * legacy sentinel `Quantity == -1`. Off by default so existing installs are unaffected —
+     * where -1 may be a real (negative) quantity, or is already the established unlimited
+     * convention. Enable per project:
+     *
+     *   SilverShop\Stock\Model\ProductWarehouseStock:
+     *     use_unlimited_checkbox: true
+     *
+     * NOTE: enabling on an install that already uses -1 for "unlimited" requires migrating those
+     * records to `Unlimited = 1` (otherwise -1 becomes a real quantity and reads as out of stock).
+     */
+    private static bool $use_unlimited_checkbox = false;
+
     private static array $db = [
         'Quantity' => 'Varchar',
         'ProductID' => 'Int',
-        'ProductClass' => 'Varchar(255)' // instance of Buyable
+        'ProductClass' => 'Varchar(255)', // instance of Buyable
+        'Unlimited' => 'Boolean' // only used when use_unlimited_checkbox is enabled
     ];
 
     private static array $has_one = [
