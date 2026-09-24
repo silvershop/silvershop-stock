@@ -1,6 +1,5 @@
 includes:
     - vendor/cambis/silverstan/extension.neon
-    - phpstan-baseline.neon
 
 parameters:
     level: 5

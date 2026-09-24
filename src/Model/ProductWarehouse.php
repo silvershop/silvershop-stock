@@ -6,6 +6,7 @@ namespace SilverShop\Stock\Model;
 
 use Override;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldAddNewButton;
 use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
@@ -41,7 +42,9 @@ class ProductWarehouse extends DataObject
     {
         $fields = parent::getCMSFields();
 
-        if ($stocked = $fields->dataFieldByName('StockedProducts')) {
+        $stocked = $fields->dataFieldByName('StockedProducts');
+
+        if ($stocked instanceof GridField) {
             $stocked->getConfig()->removeComponentsByType([
                 GridFieldAddNewButton::class,
                 GridFieldAddExistingAutocompleter::class,

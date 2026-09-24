@@ -55,7 +55,7 @@ class ProductStockExtension extends Extension
         if ($this->hasVariations()) {
             // it has variations so then we leave the management of the stock
             // level to the variation.
-            $fields->addFieldToTab('Root.Stock', new LiteralField(
+            $fields->addFieldToTab('Root.Stock', LiteralField::create(
                 'StockManagedVariations',
                 '<p class="message notice" style="display:flex;align-items:flex-start;gap:.5em">'
                 . '<span class="font-icon-info-circled" aria-hidden="true"></span><span>' . _t(
@@ -68,14 +68,14 @@ class ProductStockExtension extends Extension
             return;
         }
 
-        $grid = new GridField(
+        $grid = GridField::create(
             'StockLevels',
             _t(__CLASS__ . '.Stock', 'Stock'),
             $this->getStockForEachWarehouse(),
             GridFieldConfig::create()
-                ->addComponent(new GridFieldButtonRow('before'))
-                ->addComponent(new GridFieldToolbarHeader())
-                ->addComponent(new GridFieldEditableColumns())
+                ->addComponent(GridFieldButtonRow::create('before'))
+                ->addComponent(GridFieldToolbarHeader::create())
+                ->addComponent(GridFieldEditableColumns::create())
                 ->addComponent(new GridFieldProductStockField())
         );
 
@@ -84,7 +84,7 @@ class ProductStockExtension extends Extension
                 'field' => ReadonlyField::class
             ],
             'Quantity'  => function ($record, $column, $grid) {
-                return new TextField($column);
+                return TextField::create($column);
             }
         ]);
 
@@ -209,7 +209,7 @@ class ProductStockExtension extends Extension
     public function getStockForEachWarehouse(): ArrayList
     {
         $warehouses = ProductWarehouse::get();
-        $output = new ArrayList();
+        $output = ArrayList::create();
 
         foreach ($warehouses as $warehouse) {
             if ($stock = $this->getStockForWarehouse($warehouse)) {
