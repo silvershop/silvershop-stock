@@ -21,6 +21,7 @@ use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DB;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
+use Symbiote\GridFieldExtensions\GridFieldTitleHeader;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverShop\Stock\Model\ProductWarehouseStock;
 use SilverShop\Stock\Model\ProductWarehouse;
@@ -75,18 +76,35 @@ class ProductStockExtension extends Extension
             GridFieldConfig::create()
                 ->addComponent(GridFieldButtonRow::create('before'))
                 ->addComponent(GridFieldToolbarHeader::create())
+                ->addComponent(GridFieldTitleHeader::create())
                 ->addComponent(GridFieldEditableColumns::create())
                 ->addComponent(new GridFieldProductStockField())
         );
 
-        $grid->getConfig()->getComponentByType(GridFieldEditableColumns::class)->setDisplayFields([
+        $displayFields = [
             'Title' => [
-                'field' => ReadonlyField::class
+                'title' => _t(__CLASS__ . '.WarehouseColumn', 'Warehouse'),
+                'field' => ReadonlyField::class,
             ],
-            'Quantity'  => function ($record, $column, $grid) {
-                return TextField::create($column);
-            }
-        ]);
+            'Quantity'  => [
+                'title' => _t(__CLASS__ . '.QuantityColumn', 'Quantity'),
+                'callback' => function ($record, $column, $grid) {
+                    return TextField::create($column);
+                },
+            ],
+        ];
+
+        // Mirror the inline Variations grid: an explicit "Unlimited" checkbox when opted in.
+        if (ProductWarehouseStock::config()->get('use_unlimited_checkbox')) {
+            $displayFields['Unlimited'] = [
+                'title' => _t(__CLASS__ . '.UnlimitedColumn', 'Unlimited'),
+                'callback' => function ($record, $column, $grid) {
+                    return CheckboxField::create($column);
+                },
+            ];
+        }
+
+        $grid->getConfig()->getComponentByType(GridFieldEditableColumns::class)->setDisplayFields($displayFields);
 
         if ($fields->fieldByName('Root')) {
             $fields->addFieldToTab('Root.Stock', $grid);

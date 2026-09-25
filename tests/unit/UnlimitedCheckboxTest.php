@@ -11,6 +11,9 @@ use SilverShop\Stock\Model\ProductWarehouse;
 use SilverShop\Stock\Model\ProductWarehouseStock;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forms\GridField\GridField;
+use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
+use Symbiote\GridFieldExtensions\GridFieldTitleHeader;
 
 /**
  * Covers the inline variation stock column accessors and the opt-in
@@ -115,5 +118,43 @@ class UnlimitedCheckboxTest extends SapphireTest
 
         $this->assertArrayHasKey('StockLevel', $displayFields);
         $this->assertArrayHasKey('StockUnlimited', $displayFields);
+    }
+
+    public function testDetailStockGridHasHeaderRowAndTitledColumns(): void
+    {
+        $grid = $this->detailStockGrid();
+        $config = $grid->getConfig();
+
+        $this->assertNotNull(
+            $config->getComponentByType(GridFieldTitleHeader::class),
+            'the detail Stock grid shows a column-title header row'
+        );
+
+        $displayFields = $config->getComponentByType(GridFieldEditableColumns::class)->getDisplayFields($grid);
+        $this->assertSame('Warehouse', $displayFields['Title']['title']);
+        $this->assertSame('Quantity', $displayFields['Quantity']['title']);
+    }
+
+    public function testDetailStockGridGainsUnlimitedColumnWhenEnabled(): void
+    {
+        $grid = $this->detailStockGrid();
+        $displayFields = $grid->getConfig()
+            ->getComponentByType(GridFieldEditableColumns::class)->getDisplayFields($grid);
+        $this->assertArrayNotHasKey('Unlimited', $displayFields, 'no Unlimited column while the feature is off');
+
+        $this->enableCheckbox();
+        $grid = $this->detailStockGrid();
+        $displayFields = $grid->getConfig()
+            ->getComponentByType(GridFieldEditableColumns::class)->getDisplayFields($grid);
+        $this->assertArrayHasKey('Unlimited', $displayFields);
+    }
+
+    private function detailStockGrid(): GridField
+    {
+        // 'phone' has no variations, so ProductStockExtension builds the per-warehouse Stock grid.
+        $grid = $this->phone->getCMSFields()->dataFieldByName('StockLevels');
+        $this->assertInstanceOf(GridField::class, $grid);
+
+        return $grid;
     }
 }
