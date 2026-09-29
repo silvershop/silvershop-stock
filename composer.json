@@ -11,6 +11,7 @@
 	"require": {
 		"php": "^8.3",
 		"silverstripe/framework": "^6.0",
+		"silverstripe/reports": "^6.0",
 		"silvershop/core": "^6"
 	},
     "require-dev": {
