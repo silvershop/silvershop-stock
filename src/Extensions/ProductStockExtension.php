@@ -274,6 +274,7 @@ class ProductStockExtension extends Extension
     {
         // Let other modules (e.g. digital/downloadable products) declare a buyable always available without
         // creating stock records. An extension sets $available to true/false to short-circuit the stock lookup.
+        /** @var bool|null $available */
         $available = null;
         $this->owner->extend('updateHasAvailableStock', $available, $require);
         if ($available !== null) {
