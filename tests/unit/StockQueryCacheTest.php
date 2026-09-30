@@ -70,4 +70,31 @@ class StockQueryCacheTest extends SapphireTest
             'ProductCategory listing should eager-load the Variations relation to avoid a per-product query'
         );
     }
+
+    public function testOverrideProductsShowableEagerLoadsSuppliedList(): void
+    {
+        $category = ProductCategory::create(['Title' => 'Override Cat', 'URLSegment' => 'override-cat']);
+        $category->write();
+
+        $product = Product::create([
+            'Title' => 'Override Prod',
+            'URLSegment' => 'override-prod',
+            'ParentID' => $category->ID,
+            'BasePrice' => 10,
+        ]);
+        $product->write();
+
+        // Simulate another module (e.g. silvershop/category-index) supplying an overridden product list.
+        $override = Product::get()->filter('ParentID', $category->ID);
+        $recursive = true;
+        $category->invokeWithExtensions('overrideProductsShowable', $override, $recursive);
+
+        $first = $override->first();
+        $this->assertInstanceOf(Product::class, $first);
+        $this->assertInstanceOf(
+            EagerLoadedList::class,
+            $first->Variations(),
+            'overrideProductsShowable should eager-load an overridden product list too'
+        );
+    }
 }

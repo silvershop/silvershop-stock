@@ -5,10 +5,6 @@ SilverShop\Page\Product:
   extensions:
     - SilverShop\Stock\Extensions\ProductStockExtension
 
-SilverShop\Page\ProductCategory:
-  extensions:
-    - SilverShop\Stock\Extensions\ProductCategoryStockExtension
-
 SilverShop\Model\Variation\Variation:
   extensions:
     - SilverShop\Stock\Extensions\ProductStockExtension
@@ -28,3 +24,15 @@ SilverShop\Model\OrderItem:
 SilverShop\Admin\ProductCatalogAdmin:
   managed_models:
     - SilverShop\Stock\Model\ProductWarehouse
+
+---
+Name: silvershop-stock-category-eager
+After:
+  - silvershop-category-index
+---
+# Eager-load Variations on category listings. Ordered after silvershop-category-index so the same extension also
+# post-processes that module's overridden product list (via overrideProductsShowable). Harmless when
+# category-index is absent (the After reference is simply skipped).
+SilverShop\Page\ProductCategory:
+  extensions:
+    - SilverShop\Stock\Extensions\ProductCategoryStockExtension
