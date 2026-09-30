@@ -51,6 +51,38 @@ class ProductStockExtension extends Extension
      */
     private static int $pending_cart_max_age_mins = 0;
 
+    /**
+     * Request-scoped cache of a buyable's warehouse stock records, keyed by "<ClassName>:<ID>". A single
+     * availability check reads quantity, the unlimited flag and "has any record" — previously three separate
+     * queries for the same filter; now one materialised list per buyable per request. Cleared on any stock write
+     * (see {@link ProductWarehouseStock::onAfterWrite()}).
+     *
+     * @var array<string, array<ProductWarehouseStock>>
+     */
+    protected static array $warehouseStockCache = [];
+
+    /**
+     * Request-scoped cache of hasVariations(), keyed by "<ClassName>:<ID>" — canPurchase() and hasAvailableStock()
+     * both ask, and it does not change within a request.
+     *
+     * @var array<string, bool>
+     */
+    protected static array $hasVariationsCache = [];
+
+    private function stockCacheKey(): string
+    {
+        return $this->owner->ClassName . ':' . (int) $this->owner->ID;
+    }
+
+    /**
+     * Drop the request-scoped warehouse-stock cache. Called whenever a ProductWarehouseStock is written so
+     * subsequent reads in the same request see fresh quantities.
+     */
+    public static function flushStockCache(): void
+    {
+        self::$warehouseStockCache = [];
+    }
+
     public function updateCMSFields(FieldList $fields): void
     {
         if ($this->hasVariations()) {
@@ -363,11 +395,13 @@ class ProductStockExtension extends Extension
 
     public function hasWarehouseWithUnlimitedStock(): bool
     {
-        if (ProductWarehouseStock::config()->get('use_unlimited_checkbox')) {
-            return ($this->getWarehouseStock()->filter('Unlimited', true)->count() > 0);
+        foreach ($this->getWarehouseStockRecords() as $stock) {
+            if ($this->warehouseStockIsUnlimited($stock)) {
+                return true;
+            }
         }
 
-        return ($this->getWarehouseStock()->where("\"Quantity\" = '-1'")->count() > 0);
+        return false;
     }
 
     public function getWarehouseStock()
@@ -378,14 +412,36 @@ class ProductStockExtension extends Extension
         ]);
     }
 
+    /**
+     * The buyable's warehouse stock records, materialised once per request. The read paths (quantity, unlimited,
+     * "has any record") derive from this, so one availability check no longer fires three queries for the same
+     * filter.
+     *
+     * @return array<ProductWarehouseStock>
+     */
+    public function getWarehouseStockRecords(): array
+    {
+        $key = $this->stockCacheKey();
+        if (!array_key_exists($key, self::$warehouseStockCache)) {
+            self::$warehouseStockCache[$key] = $this->getWarehouseStock()->toArray();
+        }
+
+        return self::$warehouseStockCache[$key];
+    }
+
     public function getWarehouseStockQuantity(): int
     {
-        return (int) $this->getWarehouseStock()->sum('Quantity');
+        $quantity = 0;
+        foreach ($this->getWarehouseStockRecords() as $stock) {
+            $quantity += (int) $stock->Quantity;
+        }
+
+        return $quantity;
     }
 
     public function canPurchase($member = null, int $quantity = 1): bool
     {
-        if ($this->getWarehouseStock()->count() < 1) {
+        if (count($this->getWarehouseStockRecords()) < 1) {
             return true;
         }
 
@@ -408,10 +464,14 @@ class ProductStockExtension extends Extension
 
     public function hasVariations(): bool
     {
-        $schema = $this->owner->getSchema();
-        $componentClass = $schema->hasManyComponent($this->owner->ClassName, 'Variations');
+        $key = $this->stockCacheKey();
+        if (!array_key_exists($key, self::$hasVariationsCache)) {
+            $schema = $this->owner->getSchema();
+            $componentClass = $schema->hasManyComponent($this->owner->ClassName, 'Variations');
+            self::$hasVariationsCache[$key] = ($componentClass && $this->owner->Variations()->exists());
+        }
 
-        return ($componentClass && $this->owner->Variations()->exists());
+        return self::$hasVariationsCache[$key];
     }
 
     public function isVariation(): bool

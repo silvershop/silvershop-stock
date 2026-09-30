@@ -5,6 +5,10 @@ SilverShop\Page\Product:
   extensions:
     - SilverShop\Stock\Extensions\ProductStockExtension
 
+SilverShop\Page\ProductCategory:
+  extensions:
+    - SilverShop\Stock\Extensions\ProductCategoryStockExtension
+
 SilverShop\Model\Variation\Variation:
   extensions:
     - SilverShop\Stock\Extensions\ProductStockExtension
