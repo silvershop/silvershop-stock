@@ -6,6 +6,7 @@ namespace SilverShop\Stock\Model;
 
 use Override;
 use SilverStripe\ORM\DataObject;
+use SilverShop\Stock\Extensions\ProductStockExtension;
 use SilverShop\Stock\Model\ProductWarehouse;
 use SilverStripe\Forms\FieldList;
 use SilverShop\Model\Buyable;
@@ -79,6 +80,20 @@ class ProductWarehouseStock extends DataObject
             }
         }
         return $fields;
+    }
+
+    #[Override]
+    protected function onAfterWrite(): void
+    {
+        parent::onAfterWrite();
+        ProductStockExtension::flushStockCache();
+    }
+
+    #[Override]
+    protected function onAfterDelete(): void
+    {
+        parent::onAfterDelete();
+        ProductStockExtension::flushStockCache();
     }
 
     public function getTitle(): ?string
