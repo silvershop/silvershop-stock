@@ -13,7 +13,8 @@ use SilverStripe\ORM\EagerLoadedList;
 
 /**
  * Covers the request-scoped query caching added to reduce the stock N+1: the warehouse-stock records are
- * memoised but invalidated on write, and a category listing eager-loads Variations.
+ * memoised but invalidated on write, and a category listing prefetches Variations into a request cache while
+ * leaving the Variations() relation a plain, filterable list.
  */
 class StockQueryCacheTest extends SapphireTest
 {
@@ -46,10 +47,11 @@ class StockQueryCacheTest extends SapphireTest
         $this->assertSame(3, $phone->getWarehouseStockQuantity());
     }
 
-    public function testCategoryListingEagerLoadsVariations(): void
+    public function testCategoryListingKeepsVariationsFilterable(): void
     {
         $category = ProductCategory::create(['Title' => 'Eager Cat', 'URLSegment' => 'eager-cat']);
         $category->write();
+        $category->publishSingle();
 
         $product = Product::create([
             'Title' => 'Eager Prod',
@@ -58,23 +60,31 @@ class StockQueryCacheTest extends SapphireTest
             'BasePrice' => 10,
         ]);
         $product->write();
+        $product->publishSingle();
 
         $list = $category->ProductsShowable();
         $this->assertGreaterThan(0, $list->count());
 
         $first = $list->first();
         $this->assertInstanceOf(Product::class, $first);
-        $this->assertInstanceOf(
-            EagerLoadedList::class,
-            $first->Variations(),
-            'ProductCategory listing should eager-load the Variations relation to avoid a per-product query'
-        );
+
+        // The prefetch must NOT turn Variations() into a non-filterable EagerLoadedList — that breaks core PriceRange
+        // and any custom ->filter()/->sort() on a listing.
+        $variations = $first->Variations();
+        $this->assertNotInstanceOf(EagerLoadedList::class, $variations);
+
+        // The exact regression this guards: filtering/aggregating the relation must not throw.
+        $this->assertSame(0, $variations->filter('Price:GreaterThan', 0)->count());
+
+        // The stock check is still answered (from the prefetch cache), without a per-product query.
+        $this->assertFalse($first->hasVariations());
     }
 
-    public function testOverrideProductsShowableEagerLoadsSuppliedList(): void
+    public function testOverrideProductsShowableKeepsSuppliedListFilterable(): void
     {
         $category = ProductCategory::create(['Title' => 'Override Cat', 'URLSegment' => 'override-cat']);
         $category->write();
+        $category->publishSingle();
 
         $product = Product::create([
             'Title' => 'Override Prod',
@@ -83,6 +93,7 @@ class StockQueryCacheTest extends SapphireTest
             'BasePrice' => 10,
         ]);
         $product->write();
+        $product->publishSingle();
 
         // Simulate another module (e.g. silvershop/category-index) supplying an overridden product list.
         $override = Product::get()->filter('ParentID', $category->ID);
@@ -91,10 +102,7 @@ class StockQueryCacheTest extends SapphireTest
 
         $first = $override->first();
         $this->assertInstanceOf(Product::class, $first);
-        $this->assertInstanceOf(
-            EagerLoadedList::class,
-            $first->Variations(),
-            'overrideProductsShowable should eager-load an overridden product list too'
-        );
+        $this->assertNotInstanceOf(EagerLoadedList::class, $first->Variations());
+        $this->assertSame(0, $first->Variations()->filter('Price:GreaterThan', 0)->count());
     }
 }

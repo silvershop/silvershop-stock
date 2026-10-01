@@ -69,18 +69,68 @@ class ProductStockExtension extends Extension
      */
     protected static array $hasVariationsCache = [];
 
+    /**
+     * Request-scoped cache of a buyable's Variations, keyed by "<ClassName>:<ID>", prefetched in one query for a
+     * whole category listing by {@link ProductCategoryStockExtension}. The stock checks read from this instead of
+     * `Variations()`, so the relation accessor stays a plain, filterable DataList (not an EagerLoadedList).
+     *
+     * @var array<string, array<Variation>>
+     */
+    protected static array $variationsCache = [];
+
     private function stockCacheKey(): string
     {
         return $this->owner->ClassName . ':' . (int) $this->owner->ID;
     }
 
     /**
-     * Drop the request-scoped warehouse-stock cache. Called whenever a ProductWarehouseStock is written so
-     * subsequent reads in the same request see fresh quantities.
+     * Drop the request-scoped warehouse-stock (and variations) cache. Called whenever a ProductWarehouseStock is
+     * written so subsequent reads in the same request see fresh quantities.
      */
     public static function flushStockCache(): void
     {
         self::$warehouseStockCache = [];
+        self::$variationsCache = [];
+    }
+
+    /**
+     * Prefetch the Variations of several products in one query into the request cache. Called by
+     * {@link ProductCategoryStockExtension} with a [productID => ClassName] map for a category listing, so the
+     * per-product `hasVariations()` / availability checks that follow don't each fire a Variations query (N+1).
+     *
+     * @param array<int|string, string> $productClassById productID => ClassName for the listed products
+     */
+    public static function primeVariationsCache(array $productClassById): void
+    {
+        $ids = array_keys($productClassById);
+        if (!$ids) {
+            return;
+        }
+
+        $byProductId = [];
+        foreach (Variation::get()->filter('ProductID', $ids) as $variation) {
+            $byProductId[(int) $variation->ProductID][] = $variation;
+        }
+
+        foreach ($productClassById as $id => $className) {
+            self::$variationsCache[$className . ':' . (int) $id] = $byProductId[(int) $id] ?? [];
+        }
+    }
+
+    /**
+     * This buyable's variations as a plain array — from the request prefetch when present (a category listing), else
+     * a direct query. Never filters the relation, so Variations() itself stays a filterable DataList.
+     *
+     * @return array<Variation>
+     */
+    protected function stockVariations(): array
+    {
+        $key = $this->stockCacheKey();
+        if (array_key_exists($key, self::$variationsCache)) {
+            return self::$variationsCache[$key];
+        }
+
+        return $this->owner->Variations()->toArray();
     }
 
     public function updateCMSFields(FieldList $fields): void
@@ -314,7 +364,7 @@ class ProductStockExtension extends Extension
         }
 
         if ($this->hasVariations()) {
-            foreach ($this->owner->Variations() as $variation) {
+            foreach ($this->stockVariations() as $variation) {
                 if ($variation->hasAvailableStock($require)) {
                     return true;
                 }
@@ -465,6 +515,12 @@ class ProductStockExtension extends Extension
     public function hasVariations(): bool
     {
         $key = $this->stockCacheKey();
+
+        // Prefetched for a category listing → answer from the cache, no query.
+        if (array_key_exists($key, self::$variationsCache)) {
+            return self::$variationsCache[$key] !== [];
+        }
+
         if (!array_key_exists($key, self::$hasVariationsCache)) {
             $schema = $this->owner->getSchema();
             $componentClass = $schema->hasManyComponent($this->owner->ClassName, 'Variations');
