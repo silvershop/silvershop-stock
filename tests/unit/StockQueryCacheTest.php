@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace SilverShop\Stock\Tests;
 
+use SilverShop\Model\Variation\Variation;
 use SilverShop\Page\Product;
+use SilverShop\Stock\Extensions\ProductStockExtension;
 use SilverShop\Stock\Model\ProductWarehouse;
 use SilverShop\Stock\Model\ProductWarehouseStock;
 use SilverStripe\Dev\SapphireTest;
@@ -42,5 +44,33 @@ class StockQueryCacheTest extends SapphireTest
         // A stock write must invalidate the cache so the next read is fresh, not the memoised value.
         $this->setStockFor($phone, 3);
         $this->assertSame(3, $phone->getWarehouseStockQuantity());
+    }
+
+    public function testHasVariationsCacheInvalidatesWhenAVariationIsAdded(): void
+    {
+        $phone = $this->objFromFixture(Product::class, 'phone');
+
+        // Prime the cache with "no variations".
+        $this->assertFalse($phone->hasVariations());
+
+        Variation::create(['ProductID' => $phone->ID, 'InternalItemID' => 'PHONE-RED'])->write();
+
+        $this->assertTrue($phone->hasVariations(), 'writing a variation clears the cached answer');
+    }
+
+    public function testResetClearsCachedHasVariations(): void
+    {
+        $phone = $this->objFromFixture(Product::class, 'phone');
+        $this->assertFalse($phone->hasVariations());
+
+        // Simulate a stale entry, as left behind by an earlier test whose product had the same ID.
+        $variation = Variation::create(['ProductID' => $phone->ID, 'InternalItemID' => 'PHONE-BLUE']);
+        $variation->write();
+        $this->assertTrue($phone->hasVariations());
+        $variation->delete();
+
+        ProductStockExtension::reset();
+
+        $this->assertFalse($phone->hasVariations());
     }
 }
