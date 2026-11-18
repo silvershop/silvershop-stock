@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SilverShop\Stock\Extensions;
 
 use SilverStripe\Core\Extension;
+use SilverStripe\Core\Resettable;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
@@ -38,7 +39,7 @@ use SilverStripe\Core\Config\Configurable;
  *
  * Stock is held within a {@link ProductWarehouse}.
  */
-class ProductStockExtension extends Extension
+class ProductStockExtension extends Extension implements Resettable
 {
     use Configurable;
     
@@ -63,7 +64,7 @@ class ProductStockExtension extends Extension
 
     /**
      * Request-scoped cache of hasVariations(), keyed by "<ClassName>:<ID>" — canPurchase() and hasAvailableStock()
-     * both ask, and it does not change within a request.
+     * both ask. Cleared when a variation is written or deleted.
      *
      * @var array<string, bool>
      */
@@ -75,12 +76,36 @@ class ProductStockExtension extends Extension
     }
 
     /**
-     * Drop the request-scoped warehouse-stock cache. Called whenever a ProductWarehouseStock is written so
-     * subsequent reads in the same request see fresh quantities.
+     * Drop the request-scoped stock caches. Called whenever a ProductWarehouseStock or Variation is written so
+     * subsequent reads in the same request see fresh data.
      */
     public static function flushStockCache(): void
     {
         self::$warehouseStockCache = [];
+        self::$hasVariationsCache = [];
+    }
+
+    /**
+     * Clears the caches between tests (and anything else that resets state). The cache keys are
+     * "<ClassName>:<ID>", and IDs are reused once the database is reset.
+     */
+    public static function reset(): void
+    {
+        self::flushStockCache();
+    }
+
+    public function onAfterWrite(): void
+    {
+        if ($this->owner instanceof Variation) {
+            self::flushStockCache();
+        }
+    }
+
+    public function onAfterDelete(): void
+    {
+        if ($this->owner instanceof Variation) {
+            self::flushStockCache();
+        }
     }
 
     public function updateCMSFields(FieldList $fields): void
